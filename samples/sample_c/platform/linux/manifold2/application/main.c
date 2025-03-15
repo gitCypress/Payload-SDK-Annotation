@@ -13,7 +13,7 @@
  * material(s) incorporated within the information, in any form, is strictly
  * prohibited without the express written consent of DJI.
  *
- * If you receive this source code without DJI’s authorization, you may not
+ * If you receive this source code without DJI's authorization, you may not
  * further disseminate the information, and you must immediately remove the
  * source code and notify DJI of its removal. DJI reserves the right to pursue
  * legal actions against you for any loss(es) or damage(s) caused by your
@@ -92,6 +92,21 @@ static T_DjiReturnCode DjiTest_WriteHighPowerApplyPin(E_DjiPowerManagementPinSta
 static void DjiUser_NormalExitHandler(int signalNum);
 
 /* Exported functions definition ---------------------------------------------*/
+/**
+ * @brief 主函数 - PSDK应用程序的入口点
+ * @details 此函数实现了PSDK应用程序的完整初始化和服务启动流程，包括：
+ *          1. 准备系统环境（OSAL、HAL、日志等）
+ *          2. 配置用户应用信息
+ *          3. 初始化PSDK核心功能
+ *          4. 获取飞行器信息
+ *          5. 设置应用别名、固件版本和序列号
+ *          6. 根据配置启动各功能模块服务
+ *          7. 进入主循环等待用户退出
+ * 
+ * @param argc 命令行参数数量
+ * @param argv 命令行参数数组
+ * @return int 返回程序执行状态码
+ */
 int main(int argc, char **argv)
 {
     T_DjiReturnCode returnCode;
@@ -108,36 +123,38 @@ int main(int argc, char **argv)
     USER_UTIL_UNUSED(argc);
     USER_UTIL_UNUSED(argv);
 
-    // attention: when the program is hand up ctrl-c will generate the coredump file
+    // 注意：当程序挂起时，ctrl-c将生成coredump文件
     signal(SIGTERM, DjiUser_NormalExitHandler);
 
-    /*!< Step 1: Prepare system environment, such as osal, hal uart, console function and so on. */
+    /*!< 步骤1: 准备系统环境，包括osal、hal uart、控制台功能等 */
     returnCode = DjiUser_PrepareSystemEnvironment();
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("Prepare system environment error");
         return DJI_ERROR_SYSTEM_MODULE_CODE_SYSTEM_ERROR;
     }
 
-    /*!< Step 2: Fill your application information in dji_sdk_app_info.h and use this interface to fill it. */
+    /*!< 步骤2: 在dji_sdk_app_info.h中填写应用信息，并使用此接口填充 */
     returnCode = DjiUser_FillInUserInfo(&userInfo);
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("Fill user info error, please check user info config");
         return DJI_ERROR_SYSTEM_MODULE_CODE_SYSTEM_ERROR;
     }
 
-    /*!< Step 3: Initialize the Payload SDK core by your application information. */
+    /*!< 步骤3: 使用应用信息初始化Payload SDK核心 */
     returnCode = DjiCore_Init(&userInfo);
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("Core init error");
         return DJI_ERROR_SYSTEM_MODULE_CODE_SYSTEM_ERROR;
     }
 
+    // 获取飞行器基本信息
     returnCode = DjiAircraftInfo_GetBaseInfo(&aircraftInfoBaseInfo);
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("get aircraft base info error");
         return DJI_ERROR_SYSTEM_MODULE_CODE_SYSTEM_ERROR;
     }
 
+    // 如果不是挂载在负载端口，则获取飞行器版本信息
     if (aircraftInfoBaseInfo.mountPositionType != DJI_MOUNT_POSITION_TYPE_PAYLOAD_PORT) {
         returnCode = DjiAircraftInfo_GetAircraftVersion(&aircraftInfoVersion);
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
@@ -149,36 +166,42 @@ int main(int argc, char **argv)
         }
     }
 
+    // 设置应用别名
     returnCode = DjiCore_SetAlias("PSDK_APPALIAS");
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("set alias error");
         return DJI_ERROR_SYSTEM_MODULE_CODE_SYSTEM_ERROR;
     }
 
+    // 设置固件版本
     returnCode = DjiCore_SetFirmwareVersion(firmwareVersion);
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("set firmware version error");
         return DJI_ERROR_SYSTEM_MODULE_CODE_SYSTEM_ERROR;
     }
 
+    // 设置序列号
     returnCode = DjiCore_SetSerialNumber("PSDK12345678XX");
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("set serial number error");
         return DJI_ERROR_SYSTEM_MODULE_CODE_SYSTEM_ERROR;
     }
 
-    /*!< Step 4: Initialize the selected modules by macros in dji_sdk_config.h . */
+    /*!< 步骤4: 根据dji_sdk_config.h中的宏定义初始化选定的模块 */
 #ifdef CONFIG_MODULE_SAMPLE_POWER_MANAGEMENT_ON
+    // 配置电源管理模块
     T_DjiTestApplyHighPowerHandler applyHighPowerHandler = {
         .pinInit = DjiTest_HighPowerApplyPinInit,
         .pinWrite = DjiTest_WriteHighPowerApplyPin,
     };
 
+    // 注册高功率申请处理程序
     returnCode = DjiTest_RegApplyHighPowerHandler(&applyHighPowerHandler);
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("regsiter apply high power handler error");
     }
 
+    // 启动电源管理服务
     returnCode = DjiTest_PowerManagementStartService();
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("power management init error");
@@ -186,26 +209,31 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CONFIG_MODULE_SAMPLE_DATA_TRANSMISSION_ON
+    // 启动数据传输服务
     returnCode = DjiTest_DataTransmissionStartService();
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("widget sample init error");
     }
 #endif
 
+    // 根据飞行器类型和挂载位置启动不同的服务
     if (aircraftInfoBaseInfo.mountPosition == DJI_MOUNT_POSITION_EXTENSION_PORT &&
         (aircraftInfoBaseInfo.aircraftType == DJI_AIRCRAFT_TYPE_M300_RTK ||
          aircraftInfoBaseInfo.aircraftType == DJI_AIRCRAFT_TYPE_M350_RTK)) {
+        // 启动Widget交互服务
         returnCode = DjiTest_WidgetInteractionStartService();
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("widget interaction sample init error");
         }
 
+        // 启动Widget扬声器服务
         returnCode = DjiTest_WidgetSpeakerStartService();
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("widget speaker test init error");
         }
 
 #ifdef CONFIG_MODULE_SAMPLE_UPGRADE_ON
+        // 配置升级平台选项
         T_DjiTestUpgradePlatformOpt linuxUpgradePlatformOpt = {
             .rebootSystem = DjiUpgradePlatformLinux_RebootSystem,
             .cleanUpgradeProgramFileStoreArea = DjiUpgradePlatformLinux_CleanUpgradeProgramFileStoreArea,
@@ -223,6 +251,7 @@ int main(int argc, char **argv)
             .transferType = DJI_FIRMWARE_TRANSFER_TYPE_DCFTP,
             .needReplaceProgramBeforeReboot = true
         };
+        // 启动升级服务
         if (DjiTest_UpgradeStartService(&linuxUpgradePlatformOpt, testUpgradeConfig) !=
             DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("psdk upgrade init error");
@@ -230,6 +259,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CONFIG_MODULE_SAMPLE_MOP_CHANNEL_ON
+        // 启动MOP通道服务
         returnCode = DjiTest_MopChannelStartService();
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("mop channel sample init error");
@@ -237,6 +267,7 @@ int main(int argc, char **argv)
 #endif
     } else {
 #ifdef CONFIG_MODULE_SAMPLE_CAMERA_EMU_ON
+        // 启动相机模拟基础服务
         returnCode = DjiTest_CameraEmuBaseStartService();
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("camera emu common init error");
@@ -244,6 +275,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CONFIG_MODULE_SAMPLE_CAMERA_MEDIA_ON
+        // 启动相机模拟媒体服务
         returnCode = DjiTest_CameraEmuMediaStartService();
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("camera emu media init error");
@@ -251,6 +283,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CONFIG_MODULE_SAMPLE_FC_SUBSCRIPTION_ON
+        // 启动飞控数据订阅服务
         returnCode = DjiTest_FcSubscriptionStartService();
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("data subscription sample init error\n");
@@ -258,6 +291,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CONFIG_MODULE_SAMPLE_GIMBAL_EMU_ON
+        // 根据适配器类型启动云台模拟服务
         if (aircraftInfoBaseInfo.djiAdapterType == DJI_SDK_ADAPTER_TYPE_SKYPORT_V2 ||
             aircraftInfoBaseInfo.djiAdapterType == DJI_SDK_ADAPTER_TYPE_NONE) {
             if (DjiTest_GimbalStartService() != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
@@ -267,6 +301,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CONFIG_MODULE_SAMPLE_XPORT_ON
+        // 如果使用XPort适配器，启动XPort服务
         if (aircraftInfoBaseInfo.djiAdapterType == DJI_SDK_ADAPTER_TYPE_XPORT) {
             if (DjiTest_XPortStartService() != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
                 USER_LOG_ERROR("psdk xport init error");
@@ -276,11 +311,13 @@ int main(int argc, char **argv)
 
 #ifdef CONFIG_MODULE_SAMPLE_WIDGET_ON
 #if DJI_USE_WIDGET_INTERACTION
+        // 启动Widget交互服务
         returnCode = DjiTest_WidgetInteractionStartService();
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("widget interaction test init error");
         }
 #else
+        // 启动Widget基础服务
         returnCode = DjiTest_WidgetStartService();
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("widget sample init error");
@@ -289,6 +326,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CONFIG_MODULE_SAMPLE_WIDGET_SPEAKER_ON
+        // 启动Widget扬声器服务
         returnCode = DjiTest_WidgetSpeakerStartService();
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("widget speaker test init error");
@@ -296,6 +334,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CONFIG_MODULE_SAMPLE_MOP_CHANNEL_ON
+        // 启动MOP通道服务
         returnCode = DjiTest_MopChannelStartService();
         if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("mop channel sample init error");
@@ -303,6 +342,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CONFIG_MODULE_SAMPLE_PAYLOAD_COLLABORATION_ON
+        // 根据适配器类型启动负载协同服务
         if (aircraftInfoBaseInfo.djiAdapterType == DJI_SDK_ADAPTER_TYPE_SKYPORT_V2 ||
             aircraftInfoBaseInfo.djiAdapterType == DJI_SDK_ADAPTER_TYPE_XPORT) {
             returnCode = DjiTest_PayloadCollaborationStartService();
@@ -313,6 +353,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CONFIG_MODULE_SAMPLE_UPGRADE_ON
+        // 配置升级平台选项
         T_DjiTestUpgradePlatformOpt linuxUpgradePlatformOpt = {
             .rebootSystem = DjiUpgradePlatformLinux_RebootSystem,
             .cleanUpgradeProgramFileStoreArea = DjiUpgradePlatformLinux_CleanUpgradeProgramFileStoreArea,
@@ -330,6 +371,7 @@ int main(int argc, char **argv)
             .transferType = DJI_FIRMWARE_TRANSFER_TYPE_DCFTP,
             .needReplaceProgramBeforeReboot = true
         };
+        // 启动升级服务
         if (DjiTest_UpgradeStartService(&linuxUpgradePlatformOpt, testUpgradeConfig) !=
             DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
             USER_LOG_ERROR("psdk upgrade init error");
@@ -338,26 +380,30 @@ int main(int argc, char **argv)
     }
 
 #ifdef CONFIG_MODULE_SAMPLE_HMS_CUSTOMIZATION_ON
+    // 启动HMS自定义服务
     returnCode = DjiTest_HmsCustomizationStartService();
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("hms test init error");
     }
 #endif
 
-    /*!< Step 5: Tell the DJI Pilot you are ready. */
+    /*!< 步骤5: 通知DJI Pilot应用程序已准备就绪 */
     returnCode = DjiCore_ApplicationStart();
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("start sdk application error");
     }
 
+    // 创建系统监控线程
     if (pthread_create(&s_monitorThread, NULL, DjiUser_MonitorTask, NULL) != 0) {
         USER_LOG_ERROR("create monitor task fail.");
     }
 
+    // 设置监控线程名称
     if (pthread_setname_np(s_monitorThread, "monitor task") != 0) {
         USER_LOG_ERROR("set name for monitor task fail.");
     }
 
+    // 主循环，保持程序运行
     while (1) {
         sleep(1);
     }

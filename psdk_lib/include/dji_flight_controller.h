@@ -14,7 +14,7 @@
  * material(s) incorporated within the information, in any form, is strictly
  * prohibited without the express written consent of DJI.
  *
- * If you receive this source code without DJI’s authorization, you may not
+ * If you receive this source code without DJI's authorization, you may not
  * further disseminate the information, and you must immediately remove the
  * source code and notify DJI of its removal. DJI reserves the right to pursue
  * legal actions against you for any loss(es) or damage(s) caused by your
@@ -138,34 +138,51 @@ typedef T_DjiReturnCode (*JoystickCtrlAuthorityEventCbFunc)(
 typedef T_DjiReturnCode (*TriggerFtsEventCallback)(void);
 
 /**
- * @brief Horizon control mode in joystick mode enum
- * @note Only when the GPS signal is good (health_flag >=3)，horizontal position control (DJI_FLIGHT_CONTROLLER_HORIZONTAL_POSITION_CONTROL_MODE)
- * related control modes can be used. Only when GPS signal is good (health_flag >=3)，or advanced sensing system is working properly with Autopilot，
- * horizontal velocity control（DJI_FLIGHT_CONTROLLER_HORIZONTAL_VELOCITY_CONTROL_MODE) related control modes can be used.
+ * @brief Horizon control mode enum in joystick mode
+ * @note Need to be referenced to either the ground or body frame by E_DjiFlightControllerHorizontalCoordinate setting Limit: -150deg/s to 150.0 deg/s
  */
 typedef enum {
     /**
-     * @brief Control pitch & roll & angle of the aircraft.
-     * @note Need to be referenced to either the ground or body frame by E_DjiFlightControllerHorizontalCoordinate setting.
-     * Limit: -35 degree to 35 degree
+     * @brief 姿态角控制模式
+     * @details 在此模式下，控制飞行器的横滚和俯仰角度
+     * @note 需要通过E_DjiFlightControllerHorizontalCoordinate设置参考坐标系
+     * @note 限制范围: -35度至35度
+     * @note 在机体坐标系(FRU)下，正/负横滚角分别对应飞行器向右/左倾斜
+     * @note 在机体坐标系(FRU)下，正/负俯仰角分别对应飞行器向前/后倾斜
      */
     DJI_FLIGHT_CONTROLLER_HORIZONTAL_ANGLE_CONTROL_MODE = 0,
     /**
-     * @brief Set the control mode to control horizontal vehicle velocities.
-     * @note Need to be referenced to either the ground or body frame by E_DjiFlightControllerHorizontalCoordinate setting
-     * Limit: -30m/s to 30 m/s
+     * @brief 速度控制模式
+     * @details 在此模式下，控制飞行器的水平速度
+     * @note 需要通过E_DjiFlightControllerHorizontalCoordinate设置参考坐标系
+     * @note 限制范围: -30m/s至30m/s
+     * @note 只有当GPS信号良好或高级感知系统正常工作时，才能使用此模式
+     * @note 在地面坐标系(NEU)下，正/负x值分别对应飞行器向北/南飞行
+     * @note 在地面坐标系(NEU)下，正/负y值分别对应飞行器向东/西飞行
+     * @note 在机体坐标系(FRU)下，正/负x值分别对应飞行器向前/后飞行
+     * @note 在机体坐标系(FRU)下，正/负y值分别对应飞行器向右/左飞行
      */
     DJI_FLIGHT_CONTROLLER_HORIZONTAL_VELOCITY_CONTROL_MODE = 1,
     /**
-     * @brief Set the control mode to control position offsets of pitch & roll directions.
-     * @note Need to be referenced to either the ground or body frame by E_DjiFlightControllerHorizontalCoordinate setting
-     * Limit: N/A
+     * @brief 位置控制模式
+     * @details 在此模式下，控制飞行器的水平位置偏移量
+     * @note 需要通过E_DjiFlightControllerHorizontalCoordinate设置参考坐标系
+     * @note 只有当GPS信号良好(health_flag >= 3)时，才能使用此模式
+     * @note 当位置命令的模不为0时，飞行器将以指定速度向前飞行
+     * @note 当位置命令的模为0时，飞行器将悬停在指定位置
+     * @note 在地面坐标系(NEU)下，正/负x值分别对应飞行器向北/南移动
+     * @note 在地面坐标系(NEU)下，正/负y值分别对应飞行器向东/西移动
+     * @note 在机体坐标系(FRU)下，正/负x值分别对应飞行器向前/后移动
+     * @note 在机体坐标系(FRU)下，正/负y值分别对应飞行器向右/左移动
      */
     DJI_FLIGHT_CONTROLLER_HORIZONTAL_POSITION_CONTROL_MODE = 2,
     /**
-     * @brief Set the control mode to control rate of change of the vehicle's attitude.
-     * @note Need to be referenced to either the ground or body frame by E_DjiFlightControllerHorizontalCoordinate setting
-     * Limit: -150deg/s to 150.0 deg/s
+     * @brief 角速度控制模式
+     * @details 在此模式下，控制飞行器姿态的变化率
+     * @note 需要通过E_DjiFlightControllerHorizontalCoordinate设置参考坐标系
+     * @note 限制范围: -150度/秒至150度/秒
+     * @note 在机体坐标系(FRU)下，正/负横滚角速度分别对应飞行器向右/左旋转
+     * @note 在机体坐标系(FRU)下，正/负俯仰角速度分别对应飞行器向前/后旋转
      */
     DJI_FLIGHT_CONTROLLER_HORIZONTAL_ANGULAR_RATE_CONTROL_MODE = 3
 } E_DjiFlightControllerHorizontalControlMode;
@@ -177,20 +194,27 @@ typedef enum {
  */
 typedef enum {
     /**
-     * @brief Set the control mode to control the vertical speed of aircraft, setting the upward as positive/
-     * @note Limit: -5 m/s to 5 m/s
+     * @brief 垂直速度控制模式
+     * @details 在此模式下，控制飞行器的垂直速度，向上为正
+     * @note 限制范围: -5m/s至5m/s
+     * @note 正/负值分别对应飞行器向上/下飞行
      */
     DJI_FLIGHT_CONTROLLER_VERTICAL_VELOCITY_CONTROL_MODE = 0,
 
     /**
-     * @brief Set the control mode to control the height of aircraft
-     * @note Limit: 0 m to 120 m
+     * @brief 垂直位置控制模式
+     * @details 在此模式下，控制飞行器的垂直高度
+     * @note 限制范围: 0m至120m
+     * @note 此高度为相对于起飞点的绝对高度
+     * @note 当飞行高度超过3米时，不建议在室内使用此模式，因为气压计在室内可能不准确
      */
     DJI_FLIGHT_CONTROLLER_VERTICAL_POSITION_CONTROL_MODE = 1,
 
     /**
-     * @brief Set the control mode to directly control the thrust
-     * @note Range: 0 % to 100 %
+     * @brief 油门控制模式
+     * @details 在此模式下，直接控制飞行器的推力
+     * @note 范围: 0%至100%
+     * @note 此模式下需要飞行员具有较高的操作技巧，不建议新手使用
      */
     DJI_FLIGHT_CONTROLLER_VERTICAL_THRUST_CONTROL_MODE = 2,
 } E_DjiFlightControllerVerticalControlMode;
@@ -200,15 +224,21 @@ typedef enum {
  */
 typedef enum {
     /**
-     * @brief Set the control mode to control yaw angle.
-     * @note Yaw angle is referenced to the ground frame. In this control mode, Ground frame is enforced in Autopilot.
+     * @brief 偏航角控制模式
+     * @details 在此模式下，控制飞行器的偏航角
+     * @note 偏航角是参考地面坐标系的。在此控制模式下，自动驾驶仪强制使用地面坐标系
+     * @note 在地面坐标系下，0度表示飞行器机头指向正北
+     * @note 正/负角度分别表示飞行器相对于北方顺时针/逆时针旋转
+     * @note 范围: -180度至180度
      */
     DJI_FLIGHT_CONTROLLER_YAW_ANGLE_CONTROL_MODE = 0x00,
 
     /**
-     * @brief Set the control-mode to control yaw angular velocity
-     * @note Same reference frame as YAW_ANGLE.
-     * Limit: -150 deg/s to 150 deg/s
+     * @brief 偏航角速度控制模式
+     * @details 在此模式下，控制飞行器偏航的角速度
+     * @note 与YAW_ANGLE使用相同的参考坐标系
+     * @note 限制范围: -150度/秒至150度/秒
+     * @note 正/负值分别表示飞行器顺时针/逆时针旋转
      */
     DJI_FLIGHT_CONTROLLER_YAW_ANGLE_RATE_CONTROL_MODE = 1
 } E_DjiFlightControllerYawControlMode;
@@ -217,7 +247,23 @@ typedef enum {
  * @brief Horizontal coordinate enum in joystick mode
  */
 typedef enum {
+    /**
+     * @brief 地面坐标系
+     * @details 设置地面坐标系作为水平坐标系(NEU)
+     * @note NEU: 北-东-上坐标系
+     * @note 在此坐标系中，X轴指向地球正北方向，Y轴指向正东方向，Z轴垂直向上
+     * @note 此坐标系也称为世界坐标系或本地水平坐标系
+     * @note 当使用位置或速度控制模式时，地面坐标系更适合执行定点悬停或沿固定方向飞行等任务
+     */
     DJI_FLIGHT_CONTROLLER_HORIZONTAL_GROUND_COORDINATE = 0, /*!< Set the x-y of ground frame as the horizontal frame (NEU) */
+    /**
+     * @brief 机体坐标系
+     * @details 设置机体坐标系作为水平坐标系(FRU)
+     * @note FRU: 前-右-上坐标系
+     * @note 在此坐标系中，X轴指向飞行器机头方向，Y轴指向机头右侧，Z轴垂直向上
+     * @note 机体坐标系以飞行器重心为原点，随飞行器姿态变化而变化
+     * @note 当需要相对于飞行器当前朝向进行控制时，机体坐标系更为直观
+     */
     DJI_FLIGHT_CONTROLLER_HORIZONTAL_BODY_COORDINATE = 1 /*!< Set the x-y of body frame as the horizontal frame (FRU) */
 } E_DjiFlightControllerHorizontalCoordinate;
 
@@ -228,7 +274,22 @@ typedef enum {
  * That means aircraft will drift with the wind.
  */
 typedef enum {
+    /**
+     * @brief 禁用稳定模式
+     * @details 在此模式下，当速度命令为零时，飞行器不会悬停
+     * @note 仅在水平速度控制模式(DJI_FLIGHT_CONTROLLER_HORIZONTAL_VELOCITY_CONTROL_MODE)下有效
+     * @note 在非稳定模式下，飞行器将遵循速度命令，当命令为零时不会悬停
+     * @note 这意味着飞行器可能会随风漂移
+     * @note 此模式适用于需要飞行器随环境漂移的场景，如跟随移动物体
+     */
     DJI_FLIGHT_CONTROLLER_STABLE_CONTROL_MODE_DISABLE = 0, /*!< Disable the stable mode */
+    /**
+     * @brief 启用稳定模式
+     * @details 在此模式下，当速度命令为零时，飞行器将刹车并悬停在一个位置
+     * @note 仅在水平速度控制模式(DJI_FLIGHT_CONTROLLER_HORIZONTAL_VELOCITY_CONTROL_MODE)下有效
+     * @note 在稳定模式下，当输入命令为零时，飞行器将刹车并悬停在一个位置
+     * @note 此模式适用于需要飞行器保持位置的场景，如定点拍摄
+     */
     DJI_FLIGHT_CONTROLLER_STABLE_CONTROL_MODE_ENABLE = 1   /*!< Enable the stable mode */
 } E_DjiFlightControllerStableControlMode;
 
@@ -242,11 +303,61 @@ typedef enum {
  * @note You need to set joystick mode first before start to send joystick command to aircraft.
  */
 typedef struct {
-    E_DjiFlightControllerHorizontalControlMode horizontalControlMode; /*!< See reference of E_DjiFlightControllerHorizontalControlMode*/
-    E_DjiFlightControllerVerticalControlMode verticalControlMode; /*!< See reference of E_DjiFlightControllerVerticalControlMode*/
-    E_DjiFlightControllerYawControlMode yawControlMode; /*!< See reference of E_DjiFlightControllerYawControlMode*/
-    E_DjiFlightControllerHorizontalCoordinate horizontalCoordinate; /*!< See reference of E_DjiFlightControllerHorizontalCoordinate*/
-    E_DjiFlightControllerStableControlMode stableControlMode; /*!< See reference of E_DjiFlightControllerStableControlMode*/
+    /**
+     * @brief 水平控制模式
+     * @note 可用选项:
+     * - DJI_FLIGHT_CONTROLLER_HORIZONTAL_ANGLE_CONTROL_MODE: 姿态角控制模式，控制飞行器的横滚和俯仰角
+     *   (需要通过horizontalCoordinate设置参考坐标系，范围: -35度至35度)
+     * - DJI_FLIGHT_CONTROLLER_HORIZONTAL_VELOCITY_CONTROL_MODE: 速度控制模式，控制飞行器的水平速度
+     *   (需要通过horizontalCoordinate设置参考坐标系，范围: -30m/s至30m/s)
+     * - DJI_FLIGHT_CONTROLLER_HORIZONTAL_POSITION_CONTROL_MODE: 位置控制模式，控制飞行器的水平位置
+     *   (需要通过horizontalCoordinate设置参考坐标系)
+     * - DJI_FLIGHT_CONTROLLER_HORIZONTAL_ANGULAR_RATE_CONTROL_MODE: 角速度控制模式，控制飞行器的旋转角速度
+     *   (需要通过horizontalCoordinate设置参考坐标系，范围: -150度/秒至150度/秒)
+     * @note 只有当GPS信号良好(health_flag >= 3)时，才能使用水平位置控制模式；
+     *       只有当GPS信号良好或高级感知系统正常工作时，才能使用水平速度控制模式
+     */
+    E_DjiFlightControllerHorizontalControlMode horizontalControlMode; 
+
+    /**
+     * @brief 垂直控制模式
+     * @note 可用选项:
+     * - DJI_FLIGHT_CONTROLLER_VERTICAL_VELOCITY_CONTROL_MODE: 速度控制模式，控制飞行器的垂直速度
+     *   (向上为正，范围: -5m/s至5m/s)
+     * - DJI_FLIGHT_CONTROLLER_VERTICAL_POSITION_CONTROL_MODE: 位置控制模式，控制飞行器的垂直高度
+     *   (相对于起飞点的绝对高度，范围: 0m至120m)
+     * - DJI_FLIGHT_CONTROLLER_VERTICAL_THRUST_CONTROL_MODE: 油门控制模式，直接控制飞行器的推力
+     *   (范围: 0%至100%)
+     * @note 当飞行高度超过3米时，不建议在室内使用垂直位置控制模式，因为气压计在室内可能不准确
+     */
+    E_DjiFlightControllerVerticalControlMode verticalControlMode; 
+
+    /**
+     * @brief 偏航控制模式
+     * @note 可用选项:
+     * - DJI_FLIGHT_CONTROLLER_YAW_ANGLE_CONTROL_MODE: 角度控制模式，控制飞行器的偏航角
+     *   (参考地面坐标系，在此控制模式下，自动驾驶仪强制使用地面坐标系)
+     * - DJI_FLIGHT_CONTROLLER_YAW_ANGLE_RATE_CONTROL_MODE: 角速度控制模式，控制飞行器偏航的角速度
+     *   (与YAW_ANGLE使用相同的参考坐标系，范围: -150度/秒至150度/秒)
+     */
+    E_DjiFlightControllerYawControlMode yawControlMode; 
+
+    /**
+     * @brief 水平坐标系
+     * @note 可用选项:
+     * - DJI_FLIGHT_CONTROLLER_HORIZONTAL_GROUND_COORDINATE: 地面坐标系(NEU)，以地面为参考，北-东-上作为坐标轴
+     * - DJI_FLIGHT_CONTROLLER_HORIZONTAL_BODY_COORDINATE: 机体坐标系(FRU)，以飞行器为参考，前-右-上作为坐标轴
+     */
+    E_DjiFlightControllerHorizontalCoordinate horizontalCoordinate; 
+
+    /**
+     * @brief 稳定控制模式
+     * @note 可用选项:
+     * - DJI_FLIGHT_CONTROLLER_STABLE_CONTROL_MODE_DISABLE: 禁用稳定模式，飞行器将随风漂移
+     * - DJI_FLIGHT_CONTROLLER_STABLE_CONTROL_MODE_ENABLE: 启用稳定模式，当输入命令为零时，飞行器将刹车并悬停在一个位置
+     * @note 仅在水平速度控制模式(DJI_FLIGHT_CONTROLLER_HORIZONTAL_VELOCITY_CONTROL_MODE)下有效
+     */
+    E_DjiFlightControllerStableControlMode stableControlMode; 
 } T_DjiFlightControllerJoystickMode;
 
 #pragma pack(1)

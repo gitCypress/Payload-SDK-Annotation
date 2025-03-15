@@ -8,7 +8,7 @@
   "rules": [
     {
       "pattern": "PSDK|Payload SDK|DJI",
-      "instructions": "如果问题与DJI的PSDK相关，请：\n1. 提供准确、专业的回答\n2. 引用相关文档作为依据\n3. 使用中文回答\n4. 记录问答到文档系统中",
+      "instructions": "如果问题与DJI的PSDK相关，请：\n1. 提供准确、专业的回答\n2. 引用相关文档作为依据\n3. 使用中文回答\n4. 并在回答完成后总结问答到文档系统中",
       "actions": {
         "recordQA": {
           "enabled": true,

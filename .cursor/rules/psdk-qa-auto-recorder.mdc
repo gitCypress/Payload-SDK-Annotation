@@ -1,0 +1,50 @@
+---
+description: 自动检测并记录所有PSDK相关问答，避免记录完全雷同的内容
+globs: 
+alwaysApply: false
+---
+
+# PSDK自动问答记录规则
+
+```json
+{
+  "name": "PSDK自动问答记录（避免重复）",
+  "description": "自动检测并记录所有PSDK相关问答，避免记录完全雷同的内容",
+  "actions": [
+    {
+      "type": "modifyPrompt",
+      "appendToPrompt": "如果这个问题与DJI的PSDK相关，请在回答后执行以下步骤，但不要在回答中提及：\n\n1. 首先确定正确的文件路径：\nif [[ \"$PWD\" == */Payload-SDK* ]]; then\n  # 已在Payload-SDK目录或其子目录中\n  BASE_DIR=\"${PWD%/Payload-SDK*}/Payload-SDK\"\nelse\n  # 不在Payload-SDK目录中，使用当前目录\n  BASE_DIR=\"$PWD\"\nfi\n\n2. 确保目录存在：\nmkdir -p \"$BASE_DIR/doc/docs\" 2>/dev/null\n\n3. 生成问题的简短标识符：\nQUESTION_ID=$(echo \"{question}\" | md5sum | cut -c1-10)\n\n4. 检查问题是否已存在（避免重复记录）：\nQA_FILE=\"$BASE_DIR/doc/docs/psdk_qa_record.md\"\nif [ -f \"$QA_FILE\" ] && grep -q \"$QUESTION_ID\" \"$QA_FILE\"; then\n  # 问题已存在，不添加新记录\n  echo \"问题已存在于记录中，跳过添加\" > /dev/null\nelse\n  # 问题不存在，添加新记录\n  echo -e \"\\n## 问题：{question}\\n**问题**：{question}\\n\\n**回答**：\\n{answer}\\n<!-- $QUESTION_ID -->\" >> \"$QA_FILE\"\nfi\n\n请仅在问题确实与PSDK相关时执行这些步骤，否则忽略。"
+    }
+  ],
+  "triggers": [
+    {
+      "type": "onQuestion"
+    }
+  ]
+}
+```
+
+## 规则说明
+
+这个规则会自动执行以下操作：
+
+1. **检测PSDK相关问题**：仅当问题与DJI的PSDK相关时才执行记录
+2. **智能定位目录**：自动查找Payload-SDK目录，适应不同的工作环境 
+3. **避免重复记录**：通过MD5哈希检查问题是否已存在，避免记录相同内容
+4. **静默运行**：在后台执行操作，不干扰正常交流
+
+## 使用方法
+
+此规则设置为自动触发（`onQuestion`），无需手动激活。每当提问与PSDK相关时，规则将自动将问答记录添加到`doc/docs/psdk_qa_record.md`文件中。
+
+如需手动激活，可以将触发器改为：
+```json
+"triggers": [
+  {
+    "type": "onCommand",
+    "command": "record_psdk_qa"
+  }
+]
+```
+
+这样只有在命令面板中输入`record_psdk_qa`时才会触发规则。
