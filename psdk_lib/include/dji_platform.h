@@ -217,39 +217,146 @@ typedef struct {
 } T_DjiHalI2cHandler;
 
 typedef struct {
+    /**
+     * @brief 创建任务（线程）
+     * @details 创建一个新的线程来执行指定的任务函数
+     * @param name 任务名称，用于调试和识别
+     * @param taskFunc 任务函数指针，指向线程要执行的函数
+     * @param stackSize 线程栈大小，单位为字节
+     * @param arg 传递给任务函数的参数
+     * @param task 输出参数，用于存储创建的任务句柄
+     * @return 执行结果
+     */
     T_DjiReturnCode (*TaskCreate)(const char *name, void *(*taskFunc)(void *),
                                   uint32_t stackSize, void *arg, T_DjiTaskHandle *task);
 
+    /**
+     * @brief 销毁任务（线程）
+     * @details 终止并释放指定任务的资源
+     * @param task 要销毁的任务句柄
+     * @return 执行结果
+     */
     T_DjiReturnCode (*TaskDestroy)(T_DjiTaskHandle task);
 
+    /**
+     * @brief 任务休眠
+     * @details 使当前任务休眠指定的毫秒数
+     * @param timeMs 休眠时间，单位为毫秒
+     * @return 执行结果
+     */
     T_DjiReturnCode (*TaskSleepMs)(uint32_t timeMs);
 
+    /**
+     * @brief 创建互斥锁
+     * @details 创建一个互斥锁用于线程同步
+     * @param mutex 输出参数，用于存储创建的互斥锁句柄
+     * @return 执行结果
+     */
     T_DjiReturnCode (*MutexCreate)(T_DjiMutexHandle *mutex);
 
+    /**
+     * @brief 销毁互斥锁
+     * @details 释放互斥锁占用的资源
+     * @param mutex 要销毁的互斥锁句柄
+     * @return 执行结果
+     */
     T_DjiReturnCode (*MutexDestroy)(T_DjiMutexHandle mutex);
 
+    /**
+     * @brief 获取互斥锁（加锁）
+     * @details 尝试获取互斥锁，如果锁被占用则阻塞等待
+     * @param mutex 要获取的互斥锁句柄
+     * @return 执行结果
+     */
     T_DjiReturnCode (*MutexLock)(T_DjiMutexHandle mutex);
 
+    /**
+     * @brief 释放互斥锁（解锁）
+     * @details 释放已获取的互斥锁，使其他线程可以获取
+     * @param mutex 要释放的互斥锁句柄
+     * @return 执行结果
+     */
     T_DjiReturnCode (*MutexUnlock)(T_DjiMutexHandle mutex);
 
+    /**
+     * @brief 创建信号量
+     * @details 创建一个具有初始值的信号量
+     * @param initValue 信号量的初始值
+     * @param semaphore 输出参数，用于存储创建的信号量句柄
+     * @return 执行结果
+     */
     T_DjiReturnCode (*SemaphoreCreate)(uint32_t initValue, T_DjiSemaHandle *semaphore);
 
+    /**
+     * @brief 销毁信号量
+     * @details 释放信号量占用的资源
+     * @param semaphore 要销毁的信号量句柄
+     * @return 执行结果
+     */
     T_DjiReturnCode (*SemaphoreDestroy)(T_DjiSemaHandle semaphore);
 
+    /**
+     * @brief 等待信号量
+     * @details 尝试获取信号量，如果信号量值为0则阻塞等待
+     * @param semaphore 要等待的信号量句柄
+     * @return 执行结果
+     */
     T_DjiReturnCode (*SemaphoreWait)(T_DjiSemaHandle semaphore);
 
+    /**
+     * @brief 带超时的等待信号量
+     * @details 尝试在指定时间内获取信号量，超时则返回错误
+     * @param semaphore 要等待的信号量句柄
+     * @param waitTimeMs 最大等待时间，单位为毫秒
+     * @return 执行结果
+     */
     T_DjiReturnCode (*SemaphoreTimedWait)(T_DjiSemaHandle semaphore, uint32_t waitTimeMs);
 
+    /**
+     * @brief 释放信号量
+     * @details 增加信号量的值，可能唤醒等待该信号量的线程
+     * @param semaphore 要释放的信号量句柄
+     * @return 执行结果
+     */
     T_DjiReturnCode (*SemaphorePost)(T_DjiSemaHandle semaphore);
 
+    /**
+     * @brief 获取当前系统时间（毫秒）
+     * @details 获取自系统启动以来的毫秒数
+     * @param ms 输出参数，用于存储当前时间（毫秒）
+     * @return 执行结果
+     */
     T_DjiReturnCode (*GetTimeMs)(uint32_t *ms);
 
+    /**
+     * @brief 获取当前系统时间（微秒）
+     * @details 获取自系统启动以来的微秒数
+     * @param us 输出参数，用于存储当前时间（微秒）
+     * @return 执行结果
+     */
     T_DjiReturnCode (*GetTimeUs)(uint64_t *us);
 
+    /**
+     * @brief 获取随机数
+     * @details 生成一个16位随机数
+     * @param randomNum 输出参数，用于存储生成的随机数
+     * @return 执行结果
+     */
     T_DjiReturnCode (*GetRandomNum)(uint16_t *randomNum);
 
+    /**
+     * @brief 内存分配
+     * @details 分配指定大小的内存块
+     * @param size 要分配的内存大小，单位为字节
+     * @return 分配的内存块指针，失败则返回NULL
+     */
     void *(*Malloc)(uint32_t size);
 
+    /**
+     * @brief 内存释放
+     * @details 释放之前分配的内存块
+     * @param ptr 要释放的内存块指针
+     */
     void (*Free)(void *ptr);
 } T_DjiOsalHandler;
 

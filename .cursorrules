@@ -1,0 +1,41 @@
+# PSDK自动问答记录规则
+
+## 规则：PSDK自动问答记录（避免重复）
+
+{
+  "name": "PSDK Documentation Assistant",
+  "description": "PSDK开发文档助手，用于自动记录和管理PSDK相关问答",
+  "rules": [
+    {
+      "pattern": "PSDK|Payload SDK|DJI",
+      "instructions": "如果问题与DJI的PSDK相关，请：\n1. 提供准确、专业的回答\n2. 引用相关文档作为依据\n3. 使用中文回答\n4. 记录问答到文档系统中",
+      "actions": {
+        "recordQA": {
+          "enabled": true,
+          "path": "doc/docs/psdk_qa_record.md",
+          "format": "markdown",
+          "deduplication": true
+        }
+      }
+    }
+  ],
+  "settings": {
+    "language": "zh-CN",
+    "autoRecord": true,
+    "deduplicationMethod": "md5"
+  }
+}
+
+## 说明
+
+这个规则会自动执行以下操作：
+
+1. **检测PSDK相关问题**：当提问包含"PSDK"、"Payload SDK"或"DJI"关键词时自动触发
+2. **智能定位目录**：自动查找Payload-SDK目录，适应不同的工作环境 
+3. **避免重复记录**：通过MD5哈希检查问题是否已存在，避免记录相同内容
+4. **静默运行**：在后台执行操作，不干扰正常交流
+
+## 使用方法
+
+- **自动触发**：当提问包含关键词时自动运行
+- **手动触发**：在命令面板中输入`record_psdk_qa`命令触发
