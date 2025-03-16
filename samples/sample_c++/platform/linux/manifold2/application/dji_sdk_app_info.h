@@ -35,12 +35,12 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 // ATTENTION: User must goto https://developer.dji.com/user/apps/#all to create your own dji sdk application, get dji sdk application
 // information then fill in the application information here.
-#define USER_APP_NAME               "jiuge_dji"
-#define USER_APP_ID                 "151479"
-#define USER_APP_KEY                "ac966c1580ed0cc6da81f4dbc448835"
-#define USER_APP_LICENSE            "v78oYZ9ASmGEA9sVvht6JdOKIB8I1GaNgVunyhkHDiGVDX0rZSe04nel+5mbYWlpoXzKLSTerEfID4PdmJI6TMNJnJsCwuXJ8n6PNU3GO+42Xie22Z/cpbfQ4ZbwkCe+MTzfuiMraBFr8Gaeo73CG00L2tfBCQVOLtFAJ4yNhlWiX+Kq+teWDZHYGaPTysQampqg/oUEA7T4z9gEUlh7dDAl8X0YdY/JXrB6xuJTGYBqIvcw9zNG1f2Ra5UvbNtqizSdc7txCAxijkkyMJp/i2FAu17ShE2+sqcS2B6bjBQDicJ9UXExqhgsdQ6erxcCDxYhBmNGy7d8xGC3CHCh3Q=="
-#define USER_DEVELOPER_ACCOUNT      "jiuge4010@163.com"
-#define USER_BAUD_RATE              "460800"
+#define USER_APP_NAME               "raspberry_pi_5"
+#define USER_APP_ID                 "159645"
+#define USER_APP_KEY                "2d0a98d89ff2d7a43bc95a8deb43c67"
+#define USER_APP_LICENSE            "mTqhz1yFBVt7Fn9g+l6eWWJVB/CgDIQNtZ1hm/QPOaLybIs2pKK8QcJsl5WhyjLu23tt3ECiIGAJqh1xOO3ijHwsqunw1qNFDHbMAwSMYA3yMmF4hscI1auurtp6Mp4dJrBYlgk6QuwuFUGA2rrLUfudIlTqato9UaW4uzCiHICLv4+KlSaYV3pC4z6Wpqsu+t9/B4cAr1FvZo5f2KYFrz05DFAhH9W5A3x6LY/cEFuekHOAPKJk0SyPvVzM8ErTwu2R2y/+VMHe8WMB2yL1NSn4/fzTbxK4RFdUV0P6Z/GBrbY5SlI6I6sFgFQ3nudt3OwQidbU/DCE4DaVDkTdtQ=="
+#define USER_DEVELOPER_ACCOUNT      "2730196143@qq.com"
+#define USER_BAUD_RATE              "921600"
 
 /* Exported types ------------------------------------------------------------*/
 

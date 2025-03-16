@@ -44,8 +44,29 @@ typedef uint16_t E_DjiFlightControllerGoHomeAltitude; /*!< Unit:meter, range 20~
  * @brief The aircraft's actions when RC is lost.
  */
 typedef enum {
+    /**
+     * @brief 悬停
+     * @details 当遥控器信号丢失时，飞行器将执行悬停动作
+     * @note 飞行器将保持当前高度和位置，等待遥控器信号恢复
+     * @note 如果悬停过程中电池电量不足，飞行器可能会自动执行返航或降落
+     */
     DJI_FLIGHT_CONTROLLER_RC_LOST_ACTION_HOVER = 0,  /*!< Aircraft will execute hover action when RC is lost. */
+    
+    /**
+     * @brief 降落
+     * @details 当遥控器信号丢失时，飞行器将执行降落动作
+     * @note 飞行器将在当前位置垂直降落
+     * @note 如果降落过程中检测到障碍物，飞行器可能会悬停等待
+     */
     DJI_FLIGHT_CONTROLLER_RC_LOST_ACTION_LANDING = 1,  /*!< Aircraft will execute land action when RC is lost. */
+    
+    /**
+     * @brief 返航
+     * @details 当遥控器信号丢失时，飞行器将执行返航动作
+     * @note 飞行器将飞回起飞点或设定的返航点
+     * @note 返航高度可通过DjiFlightController_SetGoHomeAltitude设置
+     * @note 如果返航过程中电池电量过低，飞行器可能会提前降落
+     */
     DJI_FLIGHT_CONTROLLER_RC_LOST_ACTION_GOHOME = 2,  /*!< Aircraft will execute go-home action when RC is lost. */
 } E_DjiFlightControllerRCLostAction;
 
@@ -53,9 +74,22 @@ typedef enum {
  * @brief Enable/Disable RTK position enum
  */
 typedef enum {
+    /**
+     * @brief 禁用RTK定位
+     * @details 飞行器将使用GPS数据而非RTK数据来执行需要位置信息的动作
+     * @note 当禁用RTK定位时，飞行器将使用GPS数据执行航点飞行、返航等需要位置信息的操作
+     * @note 相比RTK定位，GPS定位精度较低，但在大多数场景下已足够使用
+     */
     DJI_FLIGHT_CONTROLLER_DISABLE_RTK_POSITION = 0, /*!< 0: The aircraft will use GPS data instead of RTK data to execute
                                                      * actions which requires location information(waypoint, go home...)
                                                      */
+    /**
+     * @brief 启用RTK定位
+     * @details 飞行器将使用RTK数据而非GPS数据来执行需要位置信息的动作
+     * @note 当启用RTK定位时，飞行器将使用RTK数据执行航点飞行、返航等需要位置信息的操作
+     * @note RTK定位提供厘米级精度，适用于需要高精度定位的场景
+     * @note 使用RTK定位需要RTK模块正常工作且有足够的卫星信号
+     */
     DJI_FLIGHT_CONTROLLER_ENABLE_RTK_POSITION = 1, /*!< 1:The aircraft will use RTK data instead of GPS data to execute
                                                     * actions which requires location information(waypoint, go home...)*/
 } E_DjiFlightControllerRtkPositionEnableStatus;
@@ -64,8 +98,22 @@ typedef enum {
  * @brief Enable/Disable obstacle sensing enum
  */
 typedef enum {
+    /**
+     * @brief 禁用障碍物避障
+     * @details 飞行器将不会在指定方向执行障碍物感知
+     * @note 禁用障碍物避障后，飞行器将不会检测和规避指定方向的障碍物
+     * @note 在开阔无障碍物的环境中，可以禁用避障功能以减少系统负担
+     * @warning 禁用避障功能可能增加碰撞风险，请确保飞行环境安全或由经验丰富的飞手操控
+     */
     DJI_FLIGHT_CONTROLLER_DISABLE_OBSTACLE_AVOIDANCE = 0, /*!< 0: The aircraft will not perform obstacle sensing in
                                                            * the specified direction */
+    /**
+     * @brief 启用障碍物避障
+     * @details 飞行器将在指定方向执行障碍物感知
+     * @note 启用障碍物避障后，飞行器将检测和规避指定方向的障碍物
+     * @note 避障系统包括视觉避障和雷达避障，根据不同机型可能支持不同的避障方式
+     * @note 避障功能受环境光线、障碍物材质和表面特征等因素影响，不能保证在所有情况下都能有效工作
+     */
     DJI_FLIGHT_CONTROLLER_ENABLE_OBSTACLE_AVOIDANCE = 1, /*!< 0: The aircraft will perform obstacle sensing in the
                                                           * specified direction */
 } E_DjiFlightControllerObstacleAvoidanceEnableStatus;
@@ -75,6 +123,13 @@ typedef enum {
  * @note Enable emergency-stop-motor function is very dangerous in the air. It will make the aircraft crash!!!
  */
 typedef enum {
+    /**
+     * @brief 执行紧急停止电机
+     * @details 立即停止所有电机运转
+     * @warning 此功能在空中使用极其危险！将导致飞行器坠毁！
+     * @note 此功能仅应在紧急情况下使用，如飞行器失控且可能造成人身伤害时
+     * @note 执行此命令后，需要使用禁用命令退出锁定电机状态，才能重新启动电机
+     */
     DJI_FLIGHT_CONTROLLER_ENABLE_EMERGENCY_STOP_MOTOR = 0x01, /*!< Execute emergency-stop-motor action */
 } E_DjiFlightControllerEmergencyStopMotor;
 
@@ -83,7 +138,21 @@ typedef enum {
  * @note You have obtained joystick control permission successfully before using joystick.
  */
 typedef enum {
+    /**
+     * @brief 释放摇杆控制权限
+     * @details 释放对飞行器的摇杆控制权限
+     * @note 释放控制权限后，其他控制源(如遥控器)可以获取控制权
+     * @note 当不需要通过PSDK控制飞行器时，应主动释放控制权限
+     */
     DJI_FLIGHT_CONTROLLER_RELEASE_JOYSTICK_CTRL_AUTHORITY = 0, /*!< Obtain joystick permission */
+    
+    /**
+     * @brief 获取摇杆控制权限
+     * @details 获取对飞行器的摇杆控制权限
+     * @note 在使用摇杆控制飞行器前，必须先成功获取控制权限
+     * @note 只有当遥控器处于P模式时，才能获取控制权限
+     * @note 获取控制权限可能会失败，需要检查返回值确认是否成功
+     */
     DJI_FLIGHT_CONTROLLER_OBTAIN_JOYSTICK_CTRL_AUTHORITY = 1, /*!< Release joystick permission */
 } E_DjiFlightControllerJoystickCtrlAuthorityAction;
 
@@ -91,10 +160,38 @@ typedef enum {
  * @brief The aircraft's joystick control permission owner enum
  */
 typedef enum {
+    /**
+     * @brief 遥控器控制权限
+     * @details 遥控器可以通过摇杆控制飞行器
+     * @note 这是飞行器的默认控制模式
+     * @note 当其他控制源释放控制权限时，控制权通常会回到遥控器
+     */
     DJI_FLIGHT_CONTROLLER_JOYSTICK_CTRL_AUTHORITY_RC = 0,  /*!< RC could control aircraft with joystick. */
+    
+    /**
+     * @brief 移动设备SDK控制权限
+     * @details 移动设备SDK可以通过摇杆控制飞行器
+     * @note 移动设备SDK(MSDK)是指运行在移动设备(如手机、平板)上的DJI SDK
+     * @note 当MSDK获取控制权限时，遥控器的摇杆输入将被忽略
+     */
     DJI_FLIGHT_CONTROLLER_JOYSTICK_CTRL_AUTHORITY_MSDK = 1, /*!< MSDK could control aircraft with joystick. */
+    
+    /**
+     * @brief 内部模块控制权限
+     * @details 特殊内部模块可以通过摇杆控制飞行器
+     * @note 这通常是指DJI飞行器内部的特殊功能模块
+     * @note 普通开发者通常不会直接使用此控制权限
+     */
     DJI_FLIGHT_CONTROLLER_JOYSTICK_CTRL_AUTHORITY_INTERNAL = 2, /*!< Special Internal modules could control aircraft
                                                                  * with joystick. */
+    
+    /**
+     * @brief PSDK控制权限
+     * @details PSDK可以通过摇杆控制飞行器
+     * @note 负载SDK(PSDK)是指运行在机载计算设备上的DJI SDK
+     * @note 当PSDK获取控制权限时，遥控器的摇杆输入将被忽略
+     * @note 使用PSDK控制飞行器前，必须先通过DjiFlightController_ObtainJoystickCtrlAuthority获取控制权限
+     */
     DJI_FLIGHT_CONTROLLER_JOYSTICK_CTRL_AUTHORITY_OSDK = 4, /*!< PSDK could control aircraft with joystick. */
 } E_DjiFlightControllerJoystickCtrlAuthority;
 
@@ -102,17 +199,81 @@ typedef enum {
  * @brief The aircraft's joystick control permission switch reason enum
  */
 typedef enum {
+    /**
+     * @brief MSDK获取摇杆控制权限事件
+     * @details 移动设备SDK获取了摇杆控制权限
+     */
     DJI_FLIGHT_CONTROLLER_MSDK_GET_JOYSTICK_CTRL_AUTH_EVENT = 1, /*!< MSDK gets the joystick control permission. */
+    
+    /**
+     * @brief 内部模块获取摇杆控制权限事件
+     * @details 特定内部模块获取了摇杆控制权限
+     */
     DJI_FLIGHT_CONTROLLER_INTERNAL_GET_JOYSTICK_CTRL_AUTH_EVENT = 2,  /*!< A specific internal modules gets the joystick control permission. */
+    
+    /**
+     * @brief PSDK获取摇杆控制权限事件
+     * @details 负载SDK获取了摇杆控制权限
+     */
     DJI_FLIGHT_CONTROLLER_OSDK_GET_JOYSTICK_CTRL_AUTH_EVENT = 3, /*!< PSDK gets the joystick control permission. */
+    
+    /**
+     * @brief 遥控器失控时重置摇杆控制权限事件
+     * @details 执行遥控器失控动作时，重置摇杆控制权限到遥控器
+     */
     DJI_FLIGHT_CONTROLLER_RC_LOST_GET_JOYSTICK_CTRL_AUTH_EVENT = 4, /*!< Reset the joystick control permission to RC when executing RC lost action */
+    
+    /**
+     * @brief 遥控器非P模式重置摇杆控制权限事件
+     * @details 当遥控器不在P模式时，重置摇杆控制权限到遥控器
+     * @note P模式是指定位模式(Positioning mode)，是使用PSDK控制飞行器的必要条件
+     */
     DJI_FLIGHT_CONTROLLER_RC_NOT_P_MODE_RESET_JOYSTICK_CTRL_AUTH_EVENT = 5,  /*!< Reset the joystick control permission to RC when RC is not in P mode */
+    
+    /**
+     * @brief 遥控器切换模式获取摇杆控制权限事件
+     * @details 当遥控器切换控制模式(T/APS)时，设置摇杆控制权限到遥控器
+     * @note T模式是指运动模式(Sport mode)，APS是指姿态/定位/运动模式
+     */
     DJI_FLIGHT_CONTROLLER_RC_SWITCH_MODE_GET_JOYSTICK_CTRL_AUTH_EVENT = 6,  /*!< Set the joystick control permission to RC when RC switches control mode(T/APS) */
+    
+    /**
+     * @brief 遥控器暂停获取摇杆控制权限事件
+     * @details 当遥控器暂停时，重置摇杆控制权限到遥控器
+     * @note 暂停通常是指按下遥控器上的暂停按钮
+     */
     DJI_FLIGHT_CONTROLLER_RC_PAUSE_GET_JOYSTICK_CTRL_AUTH_EVENT = 7, /*!< Reset the joystick control permission to RC when RC pauses */
+    
+    /**
+     * @brief 遥控器请求返航获取摇杆控制权限事件
+     * @details 当遥控器请求返航时，重置摇杆控制权限到遥控器
+     */
     DJI_FLIGHT_CONTROLLER_RC_REQUEST_GO_HOME_GET_JOYSTICK_CTRL_AUTH_EVENT = 8, /*!< Reset the joystick control permission to RC when RC requests to go home*/
+    
+    /**
+     * @brief 低电量返航重置摇杆控制权限事件
+     * @details 当飞行器执行低电量返航时，重置摇杆控制权限到遥控器
+     */
     DJI_FLIGHT_CONTROLLER_LOW_BATTERY_GO_HOME_RESET_JOYSTICK_CTRL_AUTH_EVENT = 9, /*!< Reset the joystick control permission to RC when aircraft is executing low-battery-go-home*/
+    
+    /**
+     * @brief 低电量降落重置摇杆控制权限事件
+     * @details 当飞行器执行低电量降落时，重置摇杆控制权限到遥控器
+     */
     DJI_FLIGHT_CONTROLLER_LOW_BATTERY_LANDING_RESET_JOYSTICK_CTRL_AUTH_EVENT = 10, /*!< Reset the joystick control permission to RC when aircraft is executing low-battery-landing*/
+    
+    /**
+     * @brief PSDK丢失获取摇杆控制权限事件
+     * @details 当PSDK丢失时，重置摇杆控制权限到遥控器
+     * @note PSDK丢失可能是由于连接断开或PSDK应用程序异常退出
+     */
     DJI_FLIGHT_CONTROLLER_OSDK_LOST_GET_JOYSTICK_CTRL_AUTH_EVENT = 11, /*!< Reset the joystick control permission to RC when PSDK is lost*/
+    
+    /**
+     * @brief 接近飞行边界重置摇杆控制权限事件
+     * @details 当飞行器接近边界时，重置摇杆控制权限到遥控器
+     * @note 飞行边界可能是地理围栏或最大飞行半径限制
+     */
     DJI_FLIGHT_CONTROLLER_NERA_FLIGHT_BOUNDARY_RESET_JOYSTICK_CTRL_AUTH_EVENT = 12, /*!< Reset the joystick control permission to RC when aircraft is near boundary.*/
 } E_DjiFlightControllerJoystickCtrlAuthoritySwitchEvent;
 
@@ -294,7 +455,20 @@ typedef enum {
 } E_DjiFlightControllerStableControlMode;
 
 typedef enum {
+    /**
+     * @brief 启用遥控器失控动作
+     * @details 当PSDK运行时，如果遥控器失控，飞行器将执行遥控器失控动作
+     * @note 遥控器失控动作可以通过DjiFlightController_SetRCLostAction设置
+     * @note 这是默认设置
+     */
     DJI_FLIGHT_CONTROLLER_ENABLE_RC_LOST_ACTION = 0,
+    
+    /**
+     * @brief 禁用遥控器失控动作
+     * @details 当PSDK运行时，如果遥控器失控，飞行器将不执行遥控器失控动作
+     * @note 此设置仅在PSDK连接时有效，如果PSDK和遥控器同时失控，飞行器仍会执行遥控器失控动作
+     * @warning 禁用遥控器失控动作可能导致飞行器在遥控器失控时无法自动返航或降落，请谨慎使用
+     */
     DJI_FLIGHT_CONTROLLER_DISABLE_RC_LOST_ACTION = 1,
 } E_DjiFlightControllerRCLostActionEnableStatus;
 
@@ -391,11 +565,24 @@ typedef struct {
  * @param ridInfo: Must report the correct RID information before using PSDK to control the aircraft.
  * @return Execution result.
  */
+/**
+ * @brief 初始化飞行控制器模块
+ * @details 在使用飞行控制功能前，必须先初始化飞行控制器模块
+ * @param ridInfo: 必须在使用PSDK控制飞行器前报告正确的RID信息
+ * @note RID(Remote ID)是无人机远程识别信息，包含飞行器的位置、高度等数据
+ * @note 在某些国家和地区，提供正确的RID信息是法律要求
+ * @return 执行结果
+ */
 T_DjiReturnCode DjiFlightController_Init(T_DjiFlightControllerRidInfo ridInfo);
 
 /**
  * @brief DeInitialise flight controller module.
  * @return Execution result.
+ */
+/**
+ * @brief 去初始化飞行控制器模块
+ * @details 当不再需要使用飞行控制功能时，应调用此函数释放资源
+ * @return 执行结果
  */
 T_DjiReturnCode DjiFlightController_DeInit(void);
 
@@ -404,6 +591,14 @@ T_DjiReturnCode DjiFlightController_DeInit(void);
  * @details Enabling RTK means that RTK data will be used instead of GPS during flight.
  * @param rtkEnableStatus: refer to "E_DjiFlightControllerRtkPositionEnableStatus", inheriting from Pilot.
  * @return Execution result.
+ */
+/**
+ * @brief 启用/禁用RTK定位功能
+ * @details 启用RT意味着飞行器将在飞行过程中使用RTK数据而非GPS数据
+ * @param rtkEnableStatus: 参考"E_DjiFlightControllerRtkPositionEnableStatus"，继承自Pilot
+ * @note RTK提供厘米级定位精度，比GPS更精确，适用于需要高精度定位的场景
+ * @note 使用RTK需要RTK模块正常工作且有足够的卫星信号
+ * @return 执行结果
  */
 T_DjiReturnCode
 DjiFlightController_SetRtkPositionEnableStatus(E_DjiFlightControllerRtkPositionEnableStatus rtkEnableStatus);
@@ -414,6 +609,13 @@ DjiFlightController_SetRtkPositionEnableStatus(E_DjiFlightControllerRtkPositionE
  * @param rtkEnableStatus: refer to "E_DjiFlightControllerRtkPositionEnableStatus", inheriting from Pilot.
  * @return Execution result.
  */
+/**
+ * @brief 获取RTK启用状态
+ * @details 获取当前RTK定位功能的启用状态
+ * @param rtkEnableStatus: 用于存储RTK启用状态的指针，参考"E_DjiFlightControllerRtkPositionEnableStatus"
+ * @note 启用RTK意味着飞行器将在智能飞行过程中使用RTK数据
+ * @return 执行结果
+ */
 T_DjiReturnCode
 DjiFlightController_GetRtkPositionEnableStatus(E_DjiFlightControllerRtkPositionEnableStatus *rtkEnableStatus);
 
@@ -423,6 +625,15 @@ DjiFlightController_GetRtkPositionEnableStatus(E_DjiFlightControllerRtkPositionE
  * @param rcLostAction: actions when RC is lost.(hover/landing/go home).It inherits from Pilot's param.
  * @return Execution result.
  */
+/**
+ * @brief 设置遥控器失控动作
+ * @details 设置当遥控器信号丢失时飞行器将执行的动作
+ * @param rcLostAction: 遥控器失控时的动作(悬停/降落/返航)，继承自Pilot参数
+ * @note 此设置仅在遥控器和PSDK都失控时有效
+ * @note 此功能仅支持M30系列飞行器
+ * @note 建议根据飞行环境和任务需求选择合适的失控动作
+ * @return 执行结果
+ */
 T_DjiReturnCode DjiFlightController_SetRCLostAction(E_DjiFlightControllerRCLostAction rcLostAction);
 
 /**
@@ -430,6 +641,14 @@ T_DjiReturnCode DjiFlightController_SetRCLostAction(E_DjiFlightControllerRCLostA
  * @note Valid when RC and PSDK are both lost. It only supports M30.
  * @param rcLostAction: see reference of E_DjiFlightControllerRCLostAction.It inherits from Pilot's param.
  * @return Execution result.
+ */
+/**
+ * @brief 获取遥控器失控动作
+ * @details 获取当前设置的遥控器失控动作(悬停/降落/返航)
+ * @param rcLostAction: 用于存储遥控器失控动作的指针，参考E_DjiFlightControllerRCLostAction
+ * @note 此设置仅在遥控器和PSDK都失控时有效
+ * @note 此功能仅支持M30系列飞行器
+ * @return 执行结果
  */
 T_DjiReturnCode DjiFlightController_GetRCLostAction(E_DjiFlightControllerRCLostAction *rcLostAction);
 
@@ -586,17 +805,40 @@ T_DjiReturnCode DjiFlightController_EmergencyStopMotor(E_DjiFlightControllerEmer
  * @brief Request taking off action when the aircraft is on the ground.
  * @return Execution result.
  */
+/**
+ * @brief 请求起飞动作
+ * @details 当飞行器在地面上时，请求执行自动起飞
+ * @note 起飞前请确保飞行器处于安全环境，周围无障碍物
+ * @note 起飞高度通常为1.2米左右，具体取决于飞行器型号
+ * @note 起飞过程中可以通过DjiFlightController_ExecuteEmergencyBrakeAction中断起飞
+ * @return 执行结果
+ */
 T_DjiReturnCode DjiFlightController_StartTakeoff(void);
 
 /**
  * @brief Request landing action when the aircraft is in the air.
  * @return Execution result.
  */
+/**
+ * @brief 请求降落动作
+ * @details 当飞行器在空中时，请求执行自动降落
+ * @note 降落前请确保降落区域平坦无障碍物
+ * @note 降落过程中，当距离地面约0.7米时，飞行器会悬停并等待确认
+ * @note 可以通过DjiFlightController_CancelLanding取消降落，或通过DjiFlightController_StartConfirmLanding确认继续降落
+ * @return 执行结果
+ */
 T_DjiReturnCode DjiFlightController_StartLanding(void);
 
 /**
  * @brief Request cancelling landing action when the aircraft is landing
  * @return Execution result.
+ */
+/**
+ * @brief 请求取消降落动作
+ * @details 当飞行器正在降落过程中时，请求取消降落
+ * @note 取消降落后，飞行器将悬停在当前高度
+ * @note 此功能通常用于发现降落区不安全时中断降落过程
+ * @return 执行结果
  */
 T_DjiReturnCode DjiFlightController_CancelLanding(void);
 
@@ -607,6 +849,15 @@ T_DjiReturnCode DjiFlightController_CancelLanding(void);
  * must use RC to control it landing manually or force landing.
  * @return Execution result.
  */
+/**
+ * @brief 确认降落
+ * @details 当飞行器距离地面约0.7米时确认继续降落
+ * @note 当飞行器与地面的间隙小于0.7米时，飞行器会暂停降落并等待用户确认
+ * @note 此API用于确认继续降落
+ * @note 如果地面不适合降落，用户必须使用遥控器手动控制降落或使用强制降落功能
+ * @note 确认降落前请确保降落区域安全无障碍物
+ * @return Execution result.
+ */
 T_DjiReturnCode DjiFlightController_StartConfirmLanding(void);
 
 /**
@@ -614,6 +865,15 @@ T_DjiReturnCode DjiFlightController_StartConfirmLanding(void);
  * @note This API will ignore the smart landing function. When using this API, it will landing directly (would not stop
  * at 0.7m and wait user's command). Attention: it may make the aircraft crash!!!
  * @return Execution result.
+ */
+/**
+ * @brief 强制降落
+ * @details 在任何情况下强制飞行器降落
+ * @note 此API将忽略智能降落功能
+ * @note 使用此API时，飞行器将直接降落(不会在0.7米处停止并等待用户命令)
+ * @warning 注意：强制降落可能导致飞行器坠毁！
+ * @note 仅在紧急情况下使用此功能
+ * @return 执行结果
  */
 T_DjiReturnCode DjiFlightController_StartForceLanding(void);
 
