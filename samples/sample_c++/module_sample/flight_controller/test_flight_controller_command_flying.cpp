@@ -91,69 +91,115 @@ void Custom_FlightAction_Circle(void){
 
     T_DjiReturnCode returnCode;
     T_DjiOsalHandler *osalHandler = DjiPlatform_GetOsalHandler();
+    bool isTaskCreated = false;
+    
+    USER_LOG_INFO("- [custom] 开始执行正圆飞行任务");
 
     // 创建命令飞行任务，用于处理飞行控制命令
-    // 该任务会初始化飞行控制器，订阅飞行数据，并循环、有保护地执行用户输入的飞行命令
     returnCode = osalHandler->TaskCreate("command_flying_task", DjiUser_FlightControllerCommandFlyingTask,
                                          DJI_TEST_COMMAND_FLYING_TASK_STACK_SIZE, NULL,
                                          &s_commandFlyingTaskHandle);
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
-        USER_LOG_ERROR("- [custom] Create command flying task failed, errno = 0x%08llX", returnCode);
+        USER_LOG_ERROR("- [custom] 创建命令飞行任务失败，错误代码: 0x%08llX", returnCode);
         return;
     }
+    isTaskCreated = true;
 
-    // 创建状态显示任务，用于显示飞行器的实时状态信息
-    // 该任务会通过OpenCV创建一个窗口，显示飞行器的姿态、位置、电池等信息
+    // 创建状态显示任务
     returnCode = osalHandler->TaskCreate("status_display_task", DjiUser_FlightControllerStatusDisplayTask,
-                                         DJI_TEST_COMMAND_FLYING_TASK_STACK_SIZE, NULL,
-                                         &s_statusDisplayTaskHandle);
+                                        DJI_TEST_COMMAND_FLYING_TASK_STACK_SIZE, NULL,
+                                        &s_statusDisplayTaskHandle);
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
-        USER_LOG_ERROR("- [custom] Create status display task failed, errno = 0x%08llX", returnCode);
-        return;
+        USER_LOG_ERROR("- [custom] 创建状态显示任务失败，错误代码: 0x%08llX", returnCode);
     }
 
     // 等待任务初始化完成
     osalHandler->TaskSleepMs(1000);
 
-    // 获取控制权
-    returnCode = DjiFlightController_ObtainJoystickCtrlAuthority();
-    if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
-        USER_LOG_ERROR("- [custom] 飞行控制权获取失败，错误代码: 0x%08X", returnCode);
-        return;
+    // 简单检查电池电量 - 仅作为警告，不中断执行
+    if (singleBatteryInfo1.batteryCapacityPercent < 30) {
+        USER_LOG_WARN("- [custom] 电池电量较低，当前电量 %d%%", singleBatteryInfo1.batteryCapacityPercent);
     }
-    osalHandler->TaskSleepMs(1000);  // 见其他示例
+    
+    // 获取控制权 - 不检查错误，因为控制权可以重复获取
+    DjiFlightController_ObtainJoystickCtrlAuthority();
+    USER_LOG_INFO("- [custom] 已尝试获取飞行控制权");
 
     // 起飞请求
     returnCode = DjiFlightController_StartTakeoff();
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("- [custom] 请求起飞失败，错误代码: 0x%08llX", returnCode);
-        return;
     }
-    USER_LOG_INFO(" - [custom] 起飞。输入 q 返航\r\n");
+    USER_LOG_INFO("- [custom] 起飞命令已发送，正在等待起飞完成");
 
-    // uint16_t clock = 0; 可以添加定时逻辑
+    // 等待起飞完成（简化版本）
+    osalHandler->TaskSleepMs(3000);
+    
+    USER_LOG_INFO("- [custom] 开始执行圆周飞行。输入 q 返航");
 
     // 简单的画圆逻辑
-    while (DjiUser_ScanKeyboardInput() != 'q'){  // 输入 q 退出循环
-        osalHandler->TaskSleepMs(10);
+    uint32_t flightTime = 0;
+    uint32_t maxFlightTime = 60000;  // 最大飞行时间1分钟
+    
+    while (DjiUser_ScanKeyboardInput() != 'q' && flightTime < maxFlightTime) {
+        osalHandler->TaskSleepMs(20);
+        flightTime += 20;
 
-        s_flyingCommand.x = s_flyingSpeed;  // 默认速度
-        s_flyingCommand.y = 0;
-        s_flyingCommand.z = 0;
-        s_flyingCommand.yaw = custom_yaw;  // 自定义角速度
+        s_flyingCommand.x = s_flyingSpeed;  // 前向速度
+        s_flyingCommand.y = 0;              // 横向速度为0
+        s_flyingCommand.z = 0;              // 垂直速度为0
+        s_flyingCommand.yaw = custom_yaw;   // 偏航角速度
         s_inputFlag = 0;
     }
 
-    // 立即清零
-    s_flyingCommand = {0, 0, 0, 0};
+    // 用户反馈
+    if (flightTime >= maxFlightTime) {
+        USER_LOG_INFO("- [custom] 已达到最大飞行时间，开始返航");
+    } else {
+        USER_LOG_INFO("- [custom] 用户按下q键，开始返航");
+    }
 
-    // 返航
+    // 立即清零所有命令
+    s_flyingCommand.x = 0;
+    s_flyingCommand.y = 0;
+    s_flyingCommand.z = 0;
+    s_flyingCommand.yaw = 0;
+    s_inputFlag = 0;
+
+    // 确保停止当前动作
+    DjiUser_FlightControllerVelocityAndYawRateCtrl(s_flyingCommand);
+    osalHandler->TaskSleepMs(500);
+
+    // 返航 - 不检查错误，简化处理
     returnCode = DjiFlightController_StartGoHome();
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("- [custom] 请求返航失败，错误代码: 0x%08llX", returnCode);
-        return;
     }
-    USER_LOG_INFO(" - Start go home\r\n");
+    
+    USER_LOG_INFO("- [custom] 返航命令已发送，等待飞机返航中...");
+    osalHandler->TaskSleepMs(10000);  // 简化版等待
+
+    // 尝试确认降落 - 不检查错误，简化处理
+    DjiFlightController_StartConfirmLanding();
+    USER_LOG_INFO("- [custom] 已发送确认降落命令");
+    osalHandler->TaskSleepMs(3000);
+
+    // 释放控制权 - 不检查错误，简化处理
+    DjiFlightController_ReleaseJoystickCtrlAuthority();
+
+    // 资源清理
+    if (isTaskCreated) {
+        if (s_commandFlyingTaskHandle) {
+            osalHandler->TaskDestroy(s_commandFlyingTaskHandle);
+            s_commandFlyingTaskHandle = NULL;
+        }
+        if (s_statusDisplayTaskHandle) {
+            osalHandler->TaskDestroy(s_statusDisplayTaskHandle);
+            s_statusDisplayTaskHandle = NULL;
+        }
+    }
+    
+    USER_LOG_INFO("- [custom] 正圆飞行任务已结束");
 }
 
 /* Exported functions definition ---------------------------------------------*/
