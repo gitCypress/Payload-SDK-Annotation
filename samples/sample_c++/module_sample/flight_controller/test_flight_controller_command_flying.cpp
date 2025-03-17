@@ -85,6 +85,77 @@ static T_DjiFcSubscriptionSingleBatteryInfo DjiUser_FlightControlGetValueOfBatte
 static T_DjiFcSubscriptionSingleBatteryInfo DjiUser_FlightControlGetValueOfBattery2(void);
 static T_DjiReturnCode DjiUser_FlightControlUpdateConfig(void);
 
+// 正圆飞行，参考函数 DjiUser_RunFlightControllerCommandFlyingSample
+void Custom_FlightAction_Circle(void){
+    dji_f32_t custom_yaw = 30; // 顺时针旋转，单位 deg/s
+
+    T_DjiReturnCode returnCode;
+    T_DjiOsalHandler *osalHandler = DjiPlatform_GetOsalHandler();
+
+    // 创建命令飞行任务，用于处理飞行控制命令
+    // 该任务会初始化飞行控制器，订阅飞行数据，并循环、有保护地执行用户输入的飞行命令
+    returnCode = osalHandler->TaskCreate("command_flying_task", DjiUser_FlightControllerCommandFlyingTask,
+                                         DJI_TEST_COMMAND_FLYING_TASK_STACK_SIZE, NULL,
+                                         &s_commandFlyingTaskHandle);
+    if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
+        USER_LOG_ERROR("- [custom] Create command flying task failed, errno = 0x%08llX", returnCode);
+        return;
+    }
+
+    // 创建状态显示任务，用于显示飞行器的实时状态信息
+    // 该任务会通过OpenCV创建一个窗口，显示飞行器的姿态、位置、电池等信息
+    returnCode = osalHandler->TaskCreate("status_display_task", DjiUser_FlightControllerStatusDisplayTask,
+                                         DJI_TEST_COMMAND_FLYING_TASK_STACK_SIZE, NULL,
+                                         &s_statusDisplayTaskHandle);
+    if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
+        USER_LOG_ERROR("- [custom] Create status display task failed, errno = 0x%08llX", returnCode);
+        return;
+    }
+
+    // 等待任务初始化完成
+    osalHandler->TaskSleepMs(1000);
+
+    // 获取控制权
+    returnCode = DjiFlightController_ObtainJoystickCtrlAuthority();
+    if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
+        USER_LOG_ERROR("- [custom] 飞行控制权获取失败，错误代码: 0x%08X", returnCode);
+        return;
+    }
+    osalHandler->TaskSleepMs(1000);  // 见其他示例
+
+    // 起飞请求
+    returnCode = DjiFlightController_StartTakeoff();
+    if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
+        USER_LOG_ERROR("- [custom] 请求起飞失败，错误代码: 0x%08llX", returnCode);
+        return;
+    }
+    USER_LOG_INFO(" - [custom] 起飞。输入 q 返航\r\n");
+
+    // uint16_t clock = 0; 可以添加定时逻辑
+
+    // 简单的画圆逻辑
+    while (DjiUser_ScanKeyboardInput() != 'q'){  // 输入 q 退出循环
+        osalHandler->TaskSleepMs(10);
+
+        s_flyingCommand.x = s_flyingSpeed;  // 默认速度
+        s_flyingCommand.y = 0;
+        s_flyingCommand.z = 0;
+        s_flyingCommand.yaw = custom_yaw;  // 自定义角速度
+        s_inputFlag = 0;
+    }
+
+    // 立即清零
+    s_flyingCommand = {0, 0, 0, 0};
+
+    // 返航
+    returnCode = DjiFlightController_StartGoHome();
+    if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
+        USER_LOG_ERROR("- [custom] 请求返航失败，错误代码: 0x%08llX", returnCode);
+        return;
+    }
+    USER_LOG_INFO(" - Start go home\r\n");
+}
+
 /* Exported functions definition ---------------------------------------------*/
 /**
  * @brief 飞行控制器命令飞行示例函数
@@ -494,7 +565,7 @@ static void *DjiUser_FlightControllerCommandFlyingTask(void *arg)
         // 将用户输入的命令转换为飞行控制指令并发送给飞行器
         DjiUser_FlightControllerVelocityAndYawRateCtrl(s_flyingCommand);
 
-        // 控制频率为DJI_TEST_COMMAND_FLYING_CTRL_FREQ（50Hz）
+        // 控制频率为 DJI_TEST_COMMAND_FLYING_CTRL_FREQ（50Hz）
         osalHandler->TaskSleepMs(1000 / DJI_TEST_COMMAND_FLYING_CTRL_FREQ);
     }
 }

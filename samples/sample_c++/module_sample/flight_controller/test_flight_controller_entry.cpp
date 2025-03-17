@@ -89,6 +89,7 @@ start:
         << "| [8] Waypoint 3.0 sample - run airline mission by kmz file (not support on M300 RTK)                            |\n"
         << "| [9] Interest point sample - run interest point mission by settings (only support on M3E/M3T)                   |\n"
         << "| [a] EU-C6 FTS trigger sample - receive fts callback to trigger parachute function (only support on M3D/M3DT)   |\n"
+        << "| [b] 自定义示例：正圆飞行   |\n"
         << std::endl;
 
     // 获取用户输入的命令
@@ -153,6 +154,10 @@ start:
             // FTS (Flight Termination System) 是飞行终止系统，用于紧急情况
             // 仅支持M3D/M3DT机型
             DjiTest_FlightControlRunSample(E_DJI_TEST_FLIGHT_CTRL_SAMPLE_SELECT_FTS_TRIGGER);
+            break;        
+        case 'b':
+            // 运行自定义正圆飞行示例
+            Custom_FlightAction_Circle();
             break;
         case 'q':
             // 退出示例程序

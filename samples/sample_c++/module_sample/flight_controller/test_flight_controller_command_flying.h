@@ -29,6 +29,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 
+#include <opencv2/ml.hpp>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,7 +40,7 @@ extern "C" {
 
 /* Exported functions --------------------------------------------------------*/
 void DjiUser_RunFlightControllerCommandFlyingSample(void);
-
+void Custom_FlightAction_Circle(void);  // 自定义正圆飞行
 #ifdef __cplusplus
 }
 #endif
