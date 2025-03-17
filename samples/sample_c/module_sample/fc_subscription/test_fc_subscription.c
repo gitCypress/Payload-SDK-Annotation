@@ -13,7 +13,7 @@
  * material(s) incorporated within the information, in any form, is strictly
  * prohibited without the express written consent of DJI.
  *
- * If you receive this source code without DJI’s authorization, you may not
+ * If you receive this source code without DJI's authorization, you may not
  * further disseminate the information, and you must immediately remove the
  * source code and notify DJI of its removal. DJI reserves the right to pursue
  * legal actions against you for any loss(es) or damage(s) caused by your
@@ -115,9 +115,11 @@ T_DjiReturnCode DjiTest_FcSubscriptionRunSample(void)
     T_DjiFcSubscriptionGpsPosition gpsPosition = {0};
     T_DjiFcSubscriptionSingleBatteryInfo singleBatteryInfo = {0};
 
+    // 打印信息，表示飞控订阅示例开始
     USER_LOG_INFO("Fc subscription sample start");
     s_userFcSubscriptionDataShow = true;
 
+    // 步骤1：初始化飞控订阅模块
     USER_LOG_INFO("--> Step 1: Init fc subscription module");
     djiStat = DjiFcSubscription_Init();
     if (djiStat != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
@@ -125,6 +127,7 @@ T_DjiReturnCode DjiTest_FcSubscriptionRunSample(void)
         return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
     }
 
+    // 步骤2：订阅四元数、速度和GPS位置的主题
     USER_LOG_INFO("--> Step 2: Subscribe the topics of quaternion, velocity and gps position");
     djiStat = DjiFcSubscription_SubscribeTopic(DJI_FC_SUBSCRIPTION_TOPIC_QUATERNION, DJI_DATA_SUBSCRIPTION_TOPIC_50_HZ,
                                                DjiTest_FcSubscriptionReceiveQuaternionCallback);
@@ -147,6 +150,7 @@ T_DjiReturnCode DjiTest_FcSubscriptionRunSample(void)
         return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
     }
 
+    // 步骤3：在接下来的10秒内获取已订阅主题的最新值
     USER_LOG_INFO("--> Step 3: Get latest value of the subscribed topics in the next 10 seconds\r\n");
 
     for (int i = 0; i < 10; ++i) {
@@ -173,8 +177,7 @@ T_DjiReturnCode DjiTest_FcSubscriptionRunSample(void)
             USER_LOG_INFO("gps position: x = %d y = %d z = %d.", gpsPosition.x, gpsPosition.y, gpsPosition.z);
         }
 
-        // Attention: if you want to subscribe the single battery info on M300 RTK, you need connect USB cable to
-        // OSDK device or use topic DJI_FC_SUBSCRIPTION_TOPIC_BATTERY_INFO instead.
+        // 注意：如果要在M300 RTK上订阅单个电池信息，需要连接USB线到OSDK设备或使用主题DJI_FC_SUBSCRIPTION_TOPIC_BATTERY_INFO
         djiStat = DjiFcSubscription_GetLatestValueOfTopic(DJI_FC_SUBSCRIPTION_TOPIC_BATTERY_SINGLE_INFO_INDEX1,
                                                           (uint8_t *) &singleBatteryInfo,
                                                           sizeof(T_DjiFcSubscriptionSingleBatteryInfo),
@@ -204,6 +207,7 @@ T_DjiReturnCode DjiTest_FcSubscriptionRunSample(void)
         }
     }
 
+    // 步骤4：取消订阅四元数、速度和GPS位置的主题
     USER_LOG_INFO("--> Step 4: Unsubscribe the topics of quaternion, velocity and gps position");
     djiStat = DjiFcSubscription_UnSubscribeTopic(DJI_FC_SUBSCRIPTION_TOPIC_QUATERNION);
     if (djiStat != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
@@ -223,6 +227,7 @@ T_DjiReturnCode DjiTest_FcSubscriptionRunSample(void)
         return DJI_ERROR_SYSTEM_MODULE_CODE_UNKNOWN;
     }
 
+    // 步骤5：去初始化飞控订阅模块
     USER_LOG_INFO("--> Step 5: Deinit fc subscription module");
 
     djiStat = DjiFcSubscription_DeInit();

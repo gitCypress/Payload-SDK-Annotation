@@ -1,24 +1,17 @@
 /**
  ********************************************************************
  * @file    dji_fc_subscription.h
- * @brief   This is the header file for "dji_fc_subscription.c", defining the structure and
- * (exported) function prototypes.
+ * @brief   这是"dji_fc_subscription.c"的头文件，定义了结构和（导出）函数原型。
  *
- * @copyright (c) 2021 DJI. All rights reserved.
+ * @copyright (c) 2021 DJI. 保留所有权利。
  *
- * All information contained herein is, and remains, the property of DJI.
- * The intellectual and technical concepts contained herein are proprietary
- * to DJI and may be covered by U.S. and foreign patents, patents in process,
- * and protected by trade secret or copyright law.  Dissemination of this
- * information, including but not limited to data and other proprietary
- * material(s) incorporated within the information, in any form, is strictly
- * prohibited without the express written consent of DJI.
+ * 此处包含的所有信息均为DJI的财产，并且仍然是DJI的财产。
+ * 其中包含的知识产权和技术概念是DJI的专有技术，可能受美国和外国专利、正在申请的专利以及商业秘密或版权法的保护。
+ * 未经DJI的明确书面同意，严禁传播此信息，包括但不限于数据和其他专有材料。
  *
- * If you receive this source code without DJI’s authorization, you may not
- * further disseminate the information, and you must immediately remove the
- * source code and notify DJI of its removal. DJI reserves the right to pursue
- * legal actions against you for any loss(es) or damage(s) caused by your
- * failure to do so.
+ * 如果您未经DJI授权收到此源代码，您不得进一步传播该信息，
+ * 并且您必须立即删除源代码并通知DJI其删除情况。
+ * DJI保留对因您未能这样做而造成的任何损失或损害采取法律行动的权利。
  *
  *********************************************************************
  */
@@ -42,56 +35,52 @@ extern "C" {
  */
 typedef enum {
     /*!
-     * @brief Quaternion of aircraft topic name. Quaternion topic provides aircraft body frame (FRD) to ground frame
-     * (NED) rotation. Please refer to ::T_DjiFcSubscriptionQuaternion for information about data structure.
-     * @details The DJI quaternion follows Hamilton convention (q0 = w, q1 = x, q2 = y, q3 = z).
-     * | Angle        | Unit | Accuracy   | Notes                                           |
-       |--------------|------|------------|-------------------------------------------------|
-       | pitch, roll  | deg  | <1         | in NON-AHRS mode                                |
-       | yaw          | deg  | <3         | in well-calibrated compass with fine aligned    |
-       | yaw with rtk | deg  | around 1.2 | in RTK heading fixed mode with 1 meter baseline |
+     * @brief 飞行器四元数主题名称。四元数主题提供飞行器机体坐标系(FRD)到地面坐标系(NED)的旋转。
+     * 请参考::T_DjiFcSubscriptionQuaternion获取有关数据结构的信息。
+     * @details DJI四元数遵循Hamilton约定(q0 = w, q1 = x, q2 = y, q3 = z)。
+     * | 角度        | 单位 | 精度     | 备注                                           |
+       |-------------|------|----------|-------------------------------------------------|
+       | 俯仰角,横滚角| 度   | <1       | 在非AHRS模式下                                  |
+       | 偏航角      | 度   | <3       | 在校准良好且精确对准的指南针下                   |
+       | 使用RTK的偏航角| 度 | 约1.2    | 在RTK航向固定模式下，基线为1米                  |
      * @datastruct \ref T_DjiFcSubscriptionQuaternion
      */
     DJI_FC_SUBSCRIPTION_TOPIC_QUATERNION = DJI_DATA_SUBSCRIPTION_TOPIC(DJI_DATA_SUBSCRIPTION_MODULE_FC, 0),
     /*!
-     * @brief Provides aircraft's acceleration w.r.t a ground-fixed \b NEU frame @ up to 200Hz
-     * @warning Please note that this data is not in a conventional right-handed frame of reference.
-     * @details This is a fusion output from the flight control system. The output is in a right-handed NED frame, but the
-     * sign of the Z-axis acceleration is flipped before publishing to this topic. So if you are looking to get acceleration
-     * in an NED frame, simply flip the sign of the z-axis value. Beyond that, you can convert using rotations to
-     * any right-handed frame of reference.
+     * @brief 提供飞行器相对于地面固定的\b NEU坐标系的加速度，最高200Hz
+     * @warning 请注意，此数据不在传统的右手坐标系参考系中。
+     * @details 这是飞行控制系统的融合输出。输出在右手NED坐标系中，但在发布到此主题之前，Z轴加速度的符号被翻转。
+     * 因此，如果您想获取NED坐标系中的加速度，只需翻转z轴值的符号。除此之外，您可以使用旋转转换到任何右手坐标系。
      * @units m/s<SUP>2</SUP>
      * @datastruct \ref T_DjiFcSubscriptionAccelerationGround
      */
     DJI_FC_SUBSCRIPTION_TOPIC_ACCELERATION_GROUND = DJI_DATA_SUBSCRIPTION_TOPIC(DJI_DATA_SUBSCRIPTION_MODULE_FC, 1),
     /*!
-     * @brief Provides aircraft's acceleration w.r.t a body-fixed \b FRU frame @ up to 200Hz
-     * @warning Please note that this data is not in a conventional right-handed frame of reference.
-     * @details This is a fusion output from the flight control system.
+     * @brief 提供飞行器相对于机体固定的\b FRU坐标系的加速度，最高200Hz
+     * @warning 请注意，此数据不在传统的右手坐标系参考系中。
+     * @details 这是飞行控制系统的融合输出。
      * @units m/s<SUP>2</SUP>
      * @datastruct \ref T_DjiFcSubscriptionAccelerationBody
      */
     DJI_FC_SUBSCRIPTION_TOPIC_ACCELERATION_BODY = DJI_DATA_SUBSCRIPTION_TOPIC(DJI_DATA_SUBSCRIPTION_MODULE_FC, 2),
     /*!
-     * @brief Provides aircraft's acceleration in an IMU-centered, body-fixed \b FRD frame @ up to 400Hz
-     * @details This is a filtered output from the IMU on board the flight control system.
+     * @brief 提供飞行器在以IMU为中心、机体固定的\b FRD坐标系中的加速度，最高400Hz
+     * @details 这是飞行控制系统上IMU的滤波输出。
      * @sensors IMU
      * @units m/s<SUP>2</SUP>
      * @datastruct \ref T_DjiFcSubscriptionAccelerationRaw
      */
     DJI_FC_SUBSCRIPTION_TOPIC_ACCELERATION_RAW = DJI_DATA_SUBSCRIPTION_TOPIC(DJI_DATA_SUBSCRIPTION_MODULE_FC, 3),
     /*!
-     * @brief Velocity of aircraft topic name. Velocity topic provides aircraft's velocity in a ground-fixed NEU frame.
-     * Please refer to ::T_DjiFcSubscriptionVelocity for information about data structure.
-     * @warning Please note that this data is not in a conventional right-handed frame of reference.
-     * @details This velocity data is a fusion output from the aircraft. Original output is in a right-handed NED frame, but the
-     * sign of the Z-axis velocity is flipped before publishing to this topic. So if you are looking to get velocity
-     * in an NED frame, simply flip the sign of the z-axis value. Beyond that, you can convert using rotations to
-     * any right-handed frame of reference.
-     * | Axis     | Unit | Accuracy                                                                                    |
+     * @brief 飞行器速度主题名称。速度主题提供飞行器在地面固定NEU坐标系中的速度。
+     * 请参考::T_DjiFcSubscriptionVelocity获取有关数据结构的信息。
+     * @warning 请注意，此数据不在传统的右手坐标系参考系中。
+     * @details 这个速度数据是飞行器的融合输出。原始输出在右手NED坐标系中，但在发布到此主题之前，Z轴速度的符号被翻转。
+     * 因此，如果您想获取NED坐标系中的速度，只需翻转z轴值的符号。除此之外，您可以使用旋转转换到任何右手坐标系。
+     * | 轴      | 单位 | 精度                                                                                     |
        |----------|------|---------------------------------------------------------------------------------------------|
-       | vgx, vgy | m/s  | Around 5cm/s for GNSS navigation. Around 3cm/s with VO at 1 meter height                    |
-       | vgz      | m/s  | 10cm/s only with barometer in steady air. 3cm/s with VO at 1 meter height with 8cm baseline |
+       | vgx, vgy | m/s  | GNSS导航约5cm/s。在1米高度的VO约3cm/s                                                      |
+       | vgz      | m/s  | 在稳定空气中仅使用气压计时为10cm/s。在1米高度、8cm基线的VO为3cm/s                           |
      * @datastruct \ref T_DjiFcSubscriptionVelocity
      */
     DJI_FC_SUBSCRIPTION_TOPIC_VELOCITY = DJI_DATA_SUBSCRIPTION_TOPIC(DJI_DATA_SUBSCRIPTION_MODULE_FC, 4),
@@ -111,8 +100,8 @@ typedef enum {
      */
     DJI_FC_SUBSCRIPTION_TOPIC_ANGULAR_RATE_RAW = DJI_DATA_SUBSCRIPTION_TOPIC(DJI_DATA_SUBSCRIPTION_MODULE_FC, 6),
     /*!
-     * @brief Fused altitude of aircraft topic name. Fused altitude topic provides aircraft's fused altitude from sea
-     * level. Please refer to ::T_DjiFcSubscriptionAltitudeFused for information about data structure.
+     * @brief 飞行器融合高度主题名称。融合高度主题提供飞行器相对于海平面的融合高度。
+     * 请参考::T_DjiFcSubscriptionAltitudeFused获取有关数据结构的信息。
      * @units m
      * @datastruct \ref T_DjiFcSubscriptionAltitudeFused
      */
@@ -1320,23 +1309,17 @@ T_DjiReturnCode DjiFcSubscription_SubscribeTopic(E_DjiFcSubscriptionTopic topic,
 T_DjiReturnCode DjiFcSubscription_UnSubscribeTopic(E_DjiFcSubscriptionTopic topic);
 
 /**
- * @brief Get the latest data value and timestamp in aircraft time system when sending the data from aircraft of specified
- * topic. If the specified topic has not been subscribed successfully, this function will return the error code.
- * @note After calling this function, user need transfer type of data pointer that pointer to data of topic to
- * corresponding data structure pointer for getting every item of the topic conveniently.
- * @param topicName: topic name to be gotten value.
- * @param data: pointer to memory space used to store data of the topic. The memory space used to store data of topic
- * have to have been allocated correctly and should ensure its size is equal to data structure size corresponding to
- * the topic, otherwise, this function will not be able to return data and timestamp (return error code).
- * @param dataSizeOfTopic: the size of memory space used to store data of topic. Normally, this size is equal to data
- * structure size corresponding to the topic. If this size is not equal to the size of the memory space, may cause memory
- * overflow event
- * @param timestamp: pointer to memory space used to store timestamps. The memory space used to store timestamps
- * have to have been allocated correctly, and should ensure its size is equal to data structure size of timestamp,
- * otherwise, this function will not be able to return data and timestamp (return error code) or even cause memory
- * overflow event. If the user does not need timestamp information, can fill in NULL. Use flight controller power-on
- * timestamp on M300 RTK. Use payload local timestamp on M30/M30T.
- * @return Execution result.
+ * @brief 获取指定主题从飞行器发送数据时的最新数据值和飞行器时间系统中的时间戳。如果指定的主题尚未成功订阅，此函数将返回错误代码。
+ * @note 调用此函数后，用户需要将指向主题数据的数据指针转换为相应的数据结构指针，以便方便地获取主题的每个项目。
+ * @param topicName: 要获取值的主题名称。
+ * @param data: 指向用于存储主题数据的内存空间的指针。用于存储主题数据的内存空间必须已正确分配，并确保其大小等于与主题对应的数据结构大小，
+ * 否则，此函数将无法返回数据和时间戳（返回错误代码）。
+ * @param dataSizeOfTopic: 用于存储主题数据的内存空间的大小。通常，此大小等于与主题对应的数据结构大小。如果此大小不等于内存空间的大小，
+ * 可能会导致内存溢出事件。
+ * @param timestamp: 指向用于存储时间戳的内存空间的指针。用于存储时间戳的内存空间必须已正确分配，并确保其大小等于时间戳的数据结构大小，
+ * 否则，此函数将无法返回数据和时间戳（返回错误代码）或甚至可能导致内存溢出事件。如果用户不需要时间戳信息，可以填写NULL。
+ * 在M300 RTK上使用飞行控制器开机时间戳。在M30/M30T上使用负载本地时间戳。
+ * @return 执行结果。
  */
 T_DjiReturnCode DjiFcSubscription_GetLatestValueOfTopic(E_DjiFcSubscriptionTopic topic,
                                                         uint8_t *data, uint16_t dataSizeOfTopic,
