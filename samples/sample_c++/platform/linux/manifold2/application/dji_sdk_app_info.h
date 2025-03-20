@@ -40,7 +40,7 @@ extern "C" {
 #define USER_APP_KEY                "ac966c1580ed0cc6da81f4dbc448835"
 #define USER_APP_LICENSE            "v78oYZ9ASmGEA9sVvht6JdOKIB8I1GaNgVunyhkHDiGVDX0rZSe04nel+5mbYWlpoXzKLSTerEfID4PdmJI6TMNJnJsCwuXJ8n6PNU3GO+42Xie22Z/cpbfQ4ZbwkCe+MTzfuiMraBFr8Gaeo73CG00L2tfBCQVOLtFAJ4yNhlWiX+Kq+teWDZHYGaPTysQampqg/oUEA7T4z9gEUlh7dDAl8X0YdY/JXrB6xuJTGYBqIvcw9zNG1f2Ra5UvbNtqizSdc7txCAxijkkyMJp/i2FAu17ShE2+sqcS2B6bjBQDicJ9UXExqhgsdQ6erxcCDxYhBmNGy7d8xGC3CHCh3Q=="
 #define USER_DEVELOPER_ACCOUNT      "jiuge4010@163.com"
-#define USER_BAUD_RATE              "460800"
+#define USER_BAUD_RATE              "921600"
 
 /* Exported types ------------------------------------------------------------*/
 

@@ -74,3 +74,6 @@ Thumbs.db
 # 日志文件
 *.log
 Logs/
+
+# 自定义
+pi5/

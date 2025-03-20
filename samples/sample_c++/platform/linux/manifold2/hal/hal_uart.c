@@ -13,7 +13,7 @@
  * material(s) incorporated within the information, in any form, is strictly
  * prohibited without the express written consent of DJI.
  *
- * If you receive this source code without DJI’s authorization, you may not
+ * If you receive this source code without DJI's authorization, you may not
  * further disseminate the information, and you must immediately remove the
  * source code and notify DJI of its removal. DJI reserves the right to pursue
  * legal actions against you for any loss(es) or damage(s) caused by your
@@ -54,7 +54,7 @@ T_DjiReturnCode HalUart_Init(E_DjiHalUartNum uartNum, uint32_t baudRate, T_DjiUa
     char systemCmd[DJI_SYSTEM_CMD_STR_MAX_SIZE];
     char *ret = NULL;
     char lineBuf[DJI_SYSTEM_RESULT_STR_MAX_SIZE] = {0};
-    FILE *fp;
+    FILE *fp = NULL;
     T_DjiUserLinkConfig linkConfig = {0};
 
     uartHandleStruct = malloc(sizeof(T_UartHandleStruct));
@@ -98,11 +98,15 @@ T_DjiReturnCode HalUart_Init(E_DjiHalUartNum uartNum, uint32_t baudRate, T_DjiUa
         goto close_fp;
     }
 #else
-    sprintf(systemCmd, "chmod 777 %s", uartName);
-    fp = popen(systemCmd, "r");
-    if (fp == NULL) {
-        goto free_uart_handle;
-    }
+    // 注释掉chmod操作，因为我们已经通过udev规则设置了设备权限
+    // sprintf(systemCmd, "chmod 777 %s", uartName);
+    // fp = popen(systemCmd, "r");
+    // if (fp == NULL) {
+    //     goto free_uart_handle;
+    // }
+    
+    // 设置fp为NULL，避免后面使用未初始化的指针
+    fp = NULL;
 #endif
 
     uartHandleStruct->uartFd = open(uartName, (unsigned) O_RDWR | (unsigned) O_NOCTTY | (unsigned) O_NDELAY);
@@ -182,7 +186,9 @@ T_DjiReturnCode HalUart_Init(E_DjiHalUartNum uartNum, uint32_t baudRate, T_DjiUa
     }
 
     *uartHandle = uartHandleStruct;
-    pclose(fp);
+    if (fp != NULL) {
+        pclose(fp);
+    }
 
     return returnCode;
 
@@ -190,7 +196,9 @@ close_uart_fd:
     close(uartHandleStruct->uartFd);
 
 close_fp:
-    pclose(fp);
+    if (fp != NULL) {
+        pclose(fp);
+    }
 
 free_uart_handle:
     free(uartHandleStruct);

@@ -67,8 +67,8 @@ extern "C" {
 #define LINUX_USB_BULK2_END_POINT_OUT           (3)
 
 #ifdef PLATFORM_ARCH_x86_64
-#define LINUX_USB_VID                         (0x0B95)
-#define LINUX_USB_PID                         (0x1790)
+#define LINUX_USB_VID                         (0x0955)
+#define LINUX_USB_PID                         (0x7020)
 #else
 #define LINUX_USB_VID                         (0x0955)
 #define LINUX_USB_PID                         (0x7020)
