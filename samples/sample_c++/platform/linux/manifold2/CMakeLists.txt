@@ -39,6 +39,7 @@ file(GLOB_RECURSE MODULE_COMMON_SRC ../common/*.c*)
 file(GLOB_RECURSE MODULE_HAL_SRC hal/*.c*)
 file(GLOB_RECURSE MODULE_APP_SRC application/*.c*)
 
+# 判断平台来确定链接的 PSDK 预编译库
 execute_process(COMMAND uname -m
         OUTPUT_VARIABLE DEVICE_SYSTEM_ID)
 if (DEVICE_SYSTEM_ID MATCHES x86_64)
@@ -62,6 +63,8 @@ add_executable(${PROJECT_NAME}
         ${MODULE_COMMON_SRC}
         ${MODULE_HAL_SRC})
 
+
+# 下面是美好的找包环节
 # Try to see if user has OpenCV installed
 # if yes, default callback will display the image
 find_package(OpenCV QUIET)
@@ -131,7 +134,7 @@ if (NOT EXECUTABLE_OUTPUT_PATH)
     set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 endif ()
 
-target_link_libraries(${PROJECT_NAME} m)
+target_link_libraries(${PROJECT_NAME} m)  # 链接 libm 数学库
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS})
 if (OpenCV_FOUND)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
 if (NOT USE_SYSTEM_ARCH)
     # select use platform 'LINUX' or 'RTOS' here, reset cache and reload cmake project
