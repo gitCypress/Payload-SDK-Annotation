@@ -29,6 +29,7 @@ if (USE_SYSTEM_ARCH MATCHES LINUX)
     add_definitions(-DSYSTEM_ARCH_LINUX)
     add_subdirectory(samples/sample_c/platform/linux/manifold2)
     add_subdirectory(samples/sample_c++/platform/linux/manifold2)
+    add_subdirectory(samples/sample_c++/platform/linux/nvidia_jetson)
     
     execute_process(COMMAND uname -m OUTPUT_VARIABLE DEVICE_SYSTEM_ID)
     if (DEVICE_SYSTEM_ID MATCHES x86_64)

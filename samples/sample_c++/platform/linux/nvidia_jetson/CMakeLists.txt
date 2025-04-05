@@ -123,4 +123,5 @@ endif ()
 
 target_link_libraries(${PROJECT_NAME} m)
 
-add_dependencies(${PROJECT_NAME} djisdk)
+# 未知意义的依赖添加（会导致异常）
+# add_dependencies(${PROJECT_NAME} djisdk)
