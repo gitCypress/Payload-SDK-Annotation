@@ -19,6 +19,13 @@
 
 #define CHECK(call) check(call, __LINE__, __FILE__)
 
+/**
+ * @brief 检查 CUDA API 调用的返回值。
+ * @param e CUDA API 返回的 cudaError_t 错误码。
+ * @param iLine 调用发生处的行号 (通常由 __LINE__ 宏提供)。
+ * @param szFile 调用发生处的文件名 (通常由 __FILE__ 宏提供)。
+ * @return 如果调用成功 (e == cudaSuccess)，返回 true；否则打印错误信息并返回 false。
+ */
 inline bool check(cudaError_t e, int iLine, const char *szFile)
 {
     if (e != cudaSuccess)
@@ -32,14 +39,28 @@ inline bool check(cudaError_t e, int iLine, const char *szFile)
 using namespace nvinfer1;
 
 
+/**
+ * @brief TensorRT 日志记录器类。
+ *        实现了 nvinfer1::ILogger 接口，用于捕获和打印 TensorRT 的日志信息。
+ */
 class Logger : public ILogger
 {
 public:
     Severity reportableSeverity;
 
+    /**
+     * @brief Logger 构造函数。
+     * @param severity 要报告的最低日志严重级别，默认为 Severity::kINFO。
+     *                 低于此级别的日志将被忽略。
+     */
     Logger(Severity severity = Severity::kINFO):
         reportableSeverity(severity) {}
 
+    /**
+     * @brief 实现 ILogger 接口的日志记录方法。
+     * @param severity 当前日志消息的严重级别。
+     * @param msg 日志消息内容。
+     */
     void log(Severity severity, const char *msg) noexcept override
     {
         if (severity > reportableSeverity)
@@ -69,7 +90,11 @@ public:
 };
 
 
-// get the size in byte of a TensorRT data type
+/**
+ * @brief 获取 TensorRT 数据类型对应的字节大小。
+ * @param dataType TensorRT 数据类型枚举值 (nvinfer1::DataType)。
+ * @return 返回对应数据类型的字节大小 (size_t)。对于未知类型，默认返回 4。
+ */
 __inline__ size_t dataTypeToSize(nvinfer1::DataType dataType)
 {
     switch ((int)dataType)
@@ -89,7 +114,11 @@ __inline__ size_t dataTypeToSize(nvinfer1::DataType dataType)
     }
 }
 
-// get the string of a TensorRT shape
+/**
+ * @brief 将 TensorRT 的维度信息转换为字符串表示。
+ * @param dim TensorRT 维度对象 (Dims32)。
+ * @return 返回维度的字符串表示，格式为 "(d1, d2, ..., dn)"。
+ */
 __inline__ std::string shapeToString(Dims32 dim)
 {
     std::string output("(");
@@ -105,7 +134,11 @@ __inline__ std::string shapeToString(Dims32 dim)
     return output;
 }
 
-// get the string of a TensorRT data type
+/**
+ * @brief 将 TensorRT 数据类型枚举值转换为字符串表示。
+ * @param dataType TensorRT 数据类型枚举值 (nvinfer1::DataType)。
+ * @return 返回数据类型的字符串表示 (e.g., "FP32", "FP16", "INT8")。
+ */
 __inline__ std::string dataTypeToString(nvinfer1::DataType dataType)
 {
     switch (dataType)
